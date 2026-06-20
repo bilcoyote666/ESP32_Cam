@@ -82,11 +82,11 @@
 // Para captura final — máxima calidad
 // FRAMESIZE_UXGA = 1600x1200 (2MP, ~170KB JPEG)
 // FRAMESIZE_QSXGA = 2560x1920 (5MP, ~400KB JPEG) — requiere más PSRAM
-#define CAM_FRAMESIZE_CAPTURE FRAMESIZE_UXGA   // 1600x1200 recomendado
+#define CAM_FRAMESIZE_CAPTURE FRAMESIZE_QSXGA  // 2560x1920 (5MP máxima resolución)
 
 // Calidad JPEG (10=mejor calidad, 63=peor calidad/más pequeño)
 #define CAM_JPEG_QUALITY_DETECT   60   // Preview rápido
-#define CAM_JPEG_QUALITY_CAPTURE  12   // Máxima calidad para guardar
+#define CAM_JPEG_QUALITY_CAPTURE  10   // Máxima calidad posible para guardar
 
 // Número de frame buffers en PSRAM
 #define CAM_FB_COUNT_DETECT       2    // Double-buffering para fluidez
