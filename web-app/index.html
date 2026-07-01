@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Raboseta Cam Studio</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="glass-panel">
+            <h1>Raboseta Cam</h1>
+            <div id="status-indicator" class="status connected">
+                <span class="dot"></span> Conectado vía WiFi
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <!-- Auth View -->
+            <section id="auth-view" class="view glass-panel" style="display: none; text-align: center; max-width: 400px; margin: 40px auto; padding: 2rem;">
+                <h2 id="auth-title">Acceso Protegido</h2>
+                <p id="auth-desc" style="color: var(--text-muted); margin-bottom: 1.5rem;">Introduce la contraseña para ver las fotos.</p>
+                <div class="control-group" style="margin-bottom: 1rem;">
+                    <input type="password" id="auth-password" placeholder="Contraseña..." style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: white; font-family: inherit;">
+                </div>
+                <button id="btn-auth-submit" class="btn primary" style="width: 100%;">Entrar</button>
+                <p id="auth-error" style="color: #ff6b6b; margin-top: 1rem; display: none;">Contraseña incorrecta</p>
+            </section>
+
+            <!-- Gallery View -->
+            <section id="gallery-view" class="view glass-panel" style="display: none;">
+                <div class="section-header">
+                    <h2>Galería VIP</h2>
+                    <button id="btn-refresh" class="btn primary">↻ Actualizar</button>
+                </div>
+                <div class="carousel-wrapper">
+                    <div id="photo-carousel" class="photo-carousel">
+                        <!-- Las fotos se cargarán aquí -->
+                        <div class="empty-state">Cargando fotografías exclusivas...</div>
+                    </div>
+                    <div class="carousel-indicators" id="carousel-indicators"></div>
+                </div>
+                <div class="carousel-hint">Desliza para explorar • Toca para editar</div>
+            </section>
+
+            <!-- Editor View (Hidden by default) -->
+            <section id="editor-view" class="view glass-panel">
+                <div class="section-header">
+                    <button id="btn-back" class="btn secondary">← Volver</button>
+                    <h2>Editor</h2>
+                </div>
+                
+                <div class="editor-container">
+                    <div class="canvas-wrapper">
+                        <!-- El lienzo donde pintaremos la foto con filtros -->
+                        <canvas id="photo-canvas"></canvas>
+                    </div>
+
+                    <div class="controls-panel">
+                        <!-- Presets VIP -->
+                        <div class="presets-bar">
+                            <button class="preset-btn active" data-preset="natural">Natural</button>
+                            <button class="preset-btn" data-preset="bw">B/N</button>
+                            <button class="preset-btn" data-preset="sepia">Sepia</button>
+                            <button class="preset-btn" data-preset="contrast">Alto Contraste</button>
+                            <button class="preset-btn" data-preset="vintage">Vintage</button>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label>Brillo</label>
+                            <input type="range" id="filter-brightness" min="0" max="200" value="100">
+                        </div>
+                        <div class="control-group">
+                            <label>Contraste</label>
+                            <input type="range" id="filter-contrast" min="0" max="200" value="100">
+                        </div>
+                        <div class="control-group">
+                            <label>Saturación</label>
+                            <input type="range" id="filter-saturation" min="0" max="200" value="100">
+                        </div>
+                        <div class="control-group">
+                            <label>Sepia</label>
+                            <input type="range" id="filter-sepia" min="0" max="100" value="0">
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button id="btn-reset" class="btn secondary">Restaurar</button>
+                            <button id="btn-download" class="btn primary">Guardar Foto</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Hidden image for loading photos -->
+    <img id="source-image" style="display:none;" crossorigin="anonymous">
+
+    <script src="app.js"></script>
+</body>
+</html>

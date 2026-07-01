@@ -1,0 +1,69 @@
+[1/5] cd /Users/oscariglesias/Documents/Arduino/Camara/build/esp-idf/esptool_py && /Users/oscariglesias/.espressif/python_env/idf5.2_py3.9_env/bin/python /Users/oscariglesias/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app /Users/oscariglesias/Documents/Arduino/Camara/build/partition_table/partition-table.bin /Users/oscariglesias/Documents/Arduino/Camara/build/CamaraESP32.bin
+CamaraESP32.bin binary size 0xbd7e0 bytes. Smallest app partition is 0x300000 bytes. 0x242820 bytes (75%) free.
+[2/5] Performing build step for 'bootloader'
+[1/1] cd /Users/oscariglesias/Documents/Arduino/Camara/build/bootloader/esp-idf/esptool_py && /Users/oscariglesias/.espressif/python_env/idf5.2_py3.9_env/bin/python /Users/oscariglesias/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 /Users/oscariglesias/Documents/Arduino/Camara/build/bootloader/bootloader.bin
+Bootloader binary size 0x5250 bytes. 0x2db0 bytes (36%) free.
+[3/5] No install step for 'bootloader'
+[4/5] Completed 'bootloader'
+[4/5] cd /Users/oscariglesias/esp/esp-idf/components/esptool_py && /opt/homebrew/bin/cmake -D IDF_PATH=/Users/oscariglesias/esp/esp-idf -D "SERIAL_TOOL=/Users/oscariglesias/.espressif/python_env/idf5.2_py3.9_env/bin/python;;/Users/oscariglesias/esp/esp-idf/components/esptool_py/esptool/esptool.py;--chip;esp32s3" -D "SERIAL_TOOL_ARGS=--before=default_reset;--after=hard_reset;write_flash;@flash_args" -D WORKING_DIRECTORY=/Users/oscariglesias/Documents/Arduino/Camara/build -P /Users/oscariglesias/esp/esp-idf/components/esptool_py/run_serial_tool.cmake
+esptool.py --chip esp32s3 -p /dev/cu.usbmodem23201 -b 460800 --before=default_reset --after=hard_reset write_flash --flash_mode dio --flash_freq 80m --flash_size 8MB 0x0 bootloader/bootloader.bin 0x10000 CamaraESP32.bin 0x8000 partition_table/partition-table.bin
+esptool.py v4.11.0
+Serial port /dev/cu.usbmodem23201
+Connecting...
+Chip is ESP32-S3 (QFN56) (revision v0.2)
+Features: WiFi, BLE, Embedded PSRAM 8MB (AP_3v3)
+Crystal is 40MHz
+USB mode: USB-Serial/JTAG
+MAC: e0:72:a1:fb:eb:f4
+Uploading stub...
+Running stub...
+Stub running...
+Changing baud rate to 460800
+Changed.
+Configuring flash size...
+Flash will be erased from 0x00000000 to 0x00005fff...
+Flash will be erased from 0x00010000 to 0x000cdfff...
+Flash will be erased from 0x00008000 to 0x00008fff...
+SHA digest in image updated
+Compressed 21072 bytes to 13060...
+Writing at 0x00000000... (100 %)
+Wrote 21072 bytes (13060 compressed) at 0x00000000 in 0.4 seconds (effective 481.4 kbit/s)...
+Hash of data verified.
+Compressed 776160 bytes to 451046...
+Writing at 0x00010000... (3 %)
+Writing at 0x0001dbdb... (7 %)
+Writing at 0x00029284... (10 %)
+Writing at 0x0002f73d... (14 %)
+Writing at 0x000349dd... (17 %)
+Writing at 0x0003e3cc... (21 %)
+Writing at 0x000445b0... (25 %)
+Writing at 0x0004aa62... (28 %)
+Writing at 0x00050fd5... (32 %)
+Writing at 0x00056f88... (35 %)
+Writing at 0x0005d0fc... (39 %)
+Writing at 0x00062923... (42 %)
+Writing at 0x000683fc... (46 %)
+Writing at 0x0006dd04... (50 %)
+Writing at 0x00073f2e... (53 %)
+Writing at 0x0007bf12... (57 %)
+Writing at 0x000829df... (60 %)
+Writing at 0x00088c57... (64 %)
+Writing at 0x0008ebfc... (67 %)
+Writing at 0x00095053... (71 %)
+Writing at 0x0009af38... (75 %)
+Writing at 0x000a0574... (78 %)
+Writing at 0x000a7007... (82 %)
+Writing at 0x000b1ce8... (85 %)
+Writing at 0x000b816c... (89 %)
+Writing at 0x000bd590... (92 %)
+Writing at 0x000c3763... (96 %)
+Writing at 0x000ca1e4... (100 %)
+Wrote 776160 bytes (451046 compressed) at 0x00010000 in 4.9 seconds (effective 1273.9 kbit/s)...
+Hash of data verified.
+Compressed 3072 bytes to 136...
+Writing at 0x00008000... (100 %)
+Wrote 3072 bytes (136 compressed) at 0x00008000 in 0.0 seconds (effective 557.1 kbit/s)...
+Hash of data verified.
+
+Leaving...
+Hard resetting via RTS pin...

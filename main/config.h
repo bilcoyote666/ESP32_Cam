@@ -2,13 +2,9 @@
  * @file config.h
  * @brief Configuración central — CámaraESP32 con OV5640
  *
- * Placa: Freenove ESP32-S3-WROOM CAM (N16R8)
- * Cámara: OV5640 5MP con autoenfoque
- * MicroSD: SDMMC 4-bit
- *
- * IMPORTANTE: Verifica los pines contra el esquemático de tu placa
- * específica antes de flashear. Los pines aquí son para la versión
- * Freenove ESP32-S3-WROOM documentada en su repositorio oficial.
+ * Placa: Seeed Studio XIAO ESP32S3 Sense
+ * Cámara: OV2640
+ * MicroSD: SPI
  */
 #pragma once
 
@@ -18,54 +14,47 @@
 // VERSIÓN DEL FIRMWARE
 // =============================================================================
 #define FIRMWARE_VERSION     "1.0.0"
-#define DEVICE_NAME          "CamaraESP32"
+#define DEVICE_NAME          "Raboseta Cam"
 
 // =============================================================================
 // PINES — CÁMARA OV5640 (interfaz DVP 24-pin)
 // =============================================================================
-// Fuente: Freenove ESP32-S3-WROOM CAM documentation
-// https://github.com/Freenove/Freenove_ESP32_S3_WROOM_Board
-
-#define CAM_PIN_PWDN         (-1)   // Power down — no conectado en esta placa
-#define CAM_PIN_RESET        (-1)   // Reset — no conectado (reset interno)
-#define CAM_PIN_XCLK         15     // Clock externo hacia el sensor
-#define CAM_PIN_SIOD         4      // I2C SDA — control del sensor
-#define CAM_PIN_SIOC         5      // I2C SCL — control del sensor
+// XIAO ESP32S3 Sense camera pinout
+#define CAM_PIN_PWDN         (-1)
+#define CAM_PIN_RESET        (-1)
+#define CAM_PIN_XCLK         10
+#define CAM_PIN_SIOD         40
+#define CAM_PIN_SIOC         39
 
 // Líneas de datos DVP (8 bits)
-#define CAM_PIN_D7           16
-#define CAM_PIN_D6           17
-#define CAM_PIN_D5           18
-#define CAM_PIN_D4           12
-#define CAM_PIN_D3           10
-#define CAM_PIN_D2           8
-#define CAM_PIN_D1           9
-#define CAM_PIN_D0           11
+#define CAM_PIN_D7           48
+#define CAM_PIN_D6           11
+#define CAM_PIN_D5           12
+#define CAM_PIN_D4           14
+#define CAM_PIN_D3           16
+#define CAM_PIN_D2           18
+#define CAM_PIN_D1           17
+#define CAM_PIN_D0           15
 
 // Sincronización DVP
-#define CAM_PIN_VSYNC        6      // Vertical sync
-#define CAM_PIN_HREF         7      // Horizontal reference
-#define CAM_PIN_PCLK         13     // Pixel clock
+#define CAM_PIN_VSYNC        38
+#define CAM_PIN_HREF         47
+#define CAM_PIN_PCLK         13
 
 // Frecuencia clock del sensor (OV5640 acepta 6-27 MHz)
 #define CAM_XCLK_FREQ_HZ     20000000  // 20 MHz — óptimo para OV5640
 
-// =============================================================================
-// PINES — MICROSD (SDMMC 4-bit, máxima velocidad)
-// =============================================================================
-// Modo SDMMC 4-bit: hasta ~20 MB/s de escritura
-#define SD_MMC_PIN_CLK       39
-#define SD_MMC_PIN_CMD       38
-#define SD_MMC_PIN_D0        40     // Datos bit 0
-#define SD_MMC_PIN_D1        41     // Datos bit 1 (solo 4-bit mode)
-#define SD_MMC_PIN_D2        42     // Datos bit 2 (solo 4-bit mode)
-#define SD_MMC_PIN_D3        2      // Datos bit 3 / CS en modo SPI
+// Modo SPI para XIAO ESP32S3 Sense
+#define SD_SPI_PIN_CS        21
+#define SD_SPI_PIN_MOSI      9
+#define SD_SPI_PIN_MISO      8
+#define SD_SPI_PIN_SCK       7
 
 // =============================================================================
 // PINES — BOTÓN Y LED
 // =============================================================================
-#define PIN_BTN_CAPTURE      0      // GPIO0 — botón BOOT disponible en placa
-#define PIN_LED_STATUS       48     // LED RGB/WS2812 integrado en la placa
+#define PIN_BTN_CAPTURE      1      // GPIO1 — Pin externo D0
+#define PIN_LED_STATUS       2      // GPIO2 — Pin externo D1
 
 // Tiempos del botón (milisegundos)
 #define BTN_DEBOUNCE_MS      20     // Tiempo de debounce
@@ -80,9 +69,7 @@
 #define CAM_FRAMESIZE_DETECT  FRAMESIZE_QVGA   // 320x240
 
 // Para captura final — máxima calidad
-// FRAMESIZE_UXGA = 1600x1200 (2MP, ~170KB JPEG)
-// FRAMESIZE_QSXGA = 2560x1920 (5MP, ~400KB JPEG) — requiere más PSRAM
-#define CAM_FRAMESIZE_CAPTURE FRAMESIZE_QSXGA  // 2560x1920 (5MP máxima resolución)
+#define CAM_FRAMESIZE_CAPTURE FRAMESIZE_UXGA  // 1600x1200 (OV2640 máxima resolución)
 
 // Calidad JPEG (10=mejor calidad, 63=peor calidad/más pequeño)
 #define CAM_JPEG_QUALITY_DETECT   60   // Preview rápido
@@ -121,29 +108,9 @@
 #define SD_MAX_FILENAME_LEN  64
 
 // =============================================================================
-// CONFIGURACIÓN BLE (NimBLE)
+// CONFIGURACIÓN WIFI (Captive Portal)
 // =============================================================================
-#define BLE_DEVICE_NAME      DEVICE_NAME
-#define BLE_MTU_SIZE         512    // MTU negociado (bytes por paquete)
-#define BLE_CHUNK_SIZE       480    // Tamaño de chunk de datos (< MTU)
-#define BLE_TX_TIMEOUT_MS    5000   // Timeout por chunk
-
-// UUIDs del servicio GATT personalizado
-// Servicio principal: Camera File Transfer Service
-#define BLE_SERVICE_UUID         "12345678-1234-1234-1234-123456789ABC"
-#define BLE_CHAR_FILE_LIST       "12345678-1234-1234-1234-123456789AB1"  // Read/Notify: JSON lista
-#define BLE_CHAR_FILE_REQUEST    "12345678-1234-1234-1234-123456789AB2"  // Write: nombre archivo
-#define BLE_CHAR_FILE_DATA       "12345678-1234-1234-1234-123456789AB3"  // Notify: chunks JPEG
-#define BLE_CHAR_CONTROL         "12345678-1234-1234-1234-123456789AB4"  // Write: comandos
-#define BLE_CHAR_STATUS          "12345678-1234-1234-1234-123456789AB5"  // Read/Notify: estado
-
-// Comandos de control BLE (escritura en BLE_CHAR_CONTROL)
-#define BLE_CMD_LIST_FILES       0x01  // Pedir lista de archivos
-#define BLE_CMD_GET_FILE         0x02  // Pedir transferencia (usar FILE_REQUEST para nombre)
-#define BLE_CMD_DELETE_FILE      0x03  // Borrar archivo (usar FILE_REQUEST para nombre)
-#define BLE_CMD_CANCEL           0x04  // Cancelar transferencia en curso
-#define BLE_CMD_CAPTURE_NOW      0x05  // Disparar foto desde BLE
-#define BLE_CMD_GET_STATUS       0x06  // Pedir estado del dispositivo
+#define WIFI_AP_SSID         DEVICE_NAME
 
 // =============================================================================
 // CONFIGURACIÓN BT CLASSIC (SPP)

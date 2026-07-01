@@ -1,0 +1,148 @@
+[1/54] Building ASM object esp-idf/esp_gdbstub/CMakeFiles/__idf_esp_gdbstub.dir/src/port/xtensa/xt_debugexception.S.obj
+[2/54] Building C object esp-idf/esp_adc/CMakeFiles/__idf_esp_adc.dir/adc_cali.c.obj
+[3/54] Building C object esp-idf/esp_gdbstub/CMakeFiles/__idf_esp_gdbstub.dir/src/gdbstub_transport.c.obj
+[4/54] Building C object esp-idf/esp_gdbstub/CMakeFiles/__idf_esp_gdbstub.dir/src/packet.c.obj
+[5/54] Building C object esp-idf/esp_http_server/CMakeFiles/__idf_esp_http_server.dir/src/util/ctrl_sock.c.obj
+[6/54] Building C object esp-idf/esp-tls/CMakeFiles/__idf_esp-tls.dir/esp_tls_platform_port.c.obj
+[7/54] Building C object esp-idf/esp_http_server/CMakeFiles/__idf_esp_http_server.dir/src/httpd_sess.c.obj
+[8/54] Building C object esp-idf/esp_adc/CMakeFiles/__idf_esp_adc.dir/adc_filter.c.obj
+[9/54] Building C object esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj
+[10/54] Building C object esp-idf/esp_http_server/CMakeFiles/__idf_esp_http_server.dir/src/httpd_txrx.c.obj
+[11/54] Building C object esp-idf/esp_http_server/CMakeFiles/__idf_esp_http_server.dir/src/httpd_main.c.obj
+[12/54] Building C object esp-idf/esp_adc/CMakeFiles/__idf_esp_adc.dir/adc_continuous.c.obj
+[13/54] Building C object esp-idf/esp_http_server/CMakeFiles/__idf_esp_http_server.dir/src/httpd_parse.c.obj
+[14/54] Building C object esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_init.c.obj
+[15/54] Building C object esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_netif.c.obj
+[16/54] Linking C static library esp-idf/esp_http_server/libesp_http_server.a
+[17/54] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/bitfield.c.obj
+[18/54] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/common/dragonfly.c.obj
+[19/54] Building C object esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj
+[20/54] Linking C static library esp-idf/esp_gdbstub/libesp_gdbstub.a
+[21/54] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/wpa_auth_ie.c.obj
+[22/54] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/base64.c.obj
+[23/54] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/ext_password.c.obj
+[24/54] Building C object esp-idf/esp_rom/CMakeFiles/__idf_esp_rom.dir/patches/esp_rom_crc.c.obj
+[25/54] Building C object esp-idf/esp-tls/CMakeFiles/__idf_esp-tls.dir/esp_tls_mbedtls.c.obj
+[26/54] Linking C static library esp-idf/esp_adc/libesp_adc.a
+[27/54] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/common/wpa_common.c.obj
+[28/54] Building C object esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32s3/esp_adapter.c.obj
+[29/54] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/rsn_supp/pmksa_cache.c.obj
+[30/54] Linking C static library esp-idf/esp-tls/libesp-tls.a
+[31/54] Performing build step for 'bootloader'
+[1/1] cd /Users/oscariglesias/Documents/Arduino/Camara/build/bootloader/esp-idf/esptool_py && /Users/oscariglesias/.espressif/python_env/idf5.2_py3.9_env/bin/python /Users/oscariglesias/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 /Users/oscariglesias/Documents/Arduino/Camara/build/bootloader/bootloader.bin
+Bootloader binary size 0x5250 bytes. 0x2db0 bytes (36%) free.
+[32/54] No install step for 'bootloader'
+[33/54] Linking C static library esp-idf/esp_wifi/libesp_wifi.a
+[34/54] Completed 'bootloader'
+[35/54] Building CXX object esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_handle_locked.cpp.obj
+[36/54] Building CXX object esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_page.cpp.obj
+[37/54] Linking C static library esp-idf/wpa_supplicant/libwpa_supplicant.a
+[38/54] Linking C static library esp-idf/nvs_flash/libnvs_flash.a
+[39/54] Linking C static library esp-idf/esp_rom/libesp_rom.a
+[40/54] Building C object esp-idf/bt/CMakeFiles/__idf_bt.dir/host/nimble/nimble/nimble/host/src/ble_hs_shutdown.c.obj
+[41/54] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/button.cpp.obj
+[42/54] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/led.cpp.obj
+[43/54] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/face_detect.cpp.obj
+/Users/oscariglesias/Documents/Arduino/Camara/main/face_detect.cpp:29:6: warning: #warning "esp-who no encontrado. La detección de caras estará desactivada." [-Wcpp]
+   29 |     #warning "esp-who no encontrado. La detección de caras estará desactivada."
+      |      ^~~~~~~
+/Users/oscariglesias/Documents/Arduino/Camara/main/face_detect.cpp:30:6: warning: #warning "Instala esp-who como componente IDF y recompila." [-Wcpp]
+   30 |     #warning "Instala esp-who como componente IDF y recompila."
+      |      ^~~~~~~
+[44/54] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/camera.cpp.obj
+/Users/oscariglesias/Documents/Arduino/Camara/main/camera.cpp:54:1: warning: missing initializer for member 'camera_config_t::sccb_i2c_port' [-Wmissing-field-initializers]
+   54 | };
+      | ^
+/Users/oscariglesias/Documents/Arduino/Camara/main/camera.cpp:94:18: warning: 'esp_err_t ov5640_read_reg(uint16_t, uint8_t*)' defined but not used [-Wunused-function]
+   94 | static esp_err_t ov5640_read_reg(uint16_t reg, uint8_t* val) {
+      |                  ^~~~~~~~~~~~~~~
+/Users/oscariglesias/Documents/Arduino/Camara/main/camera.cpp:76:18: warning: 'esp_err_t ov5640_write_reg(uint16_t, uint8_t)' defined but not used [-Wunused-function]
+   76 | static esp_err_t ov5640_write_reg(uint16_t reg, uint8_t val) {
+      |                  ^~~~~~~~~~~~~~~~
+[45/54] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/sd_storage.cpp.obj
+/Users/oscariglesias/Documents/Arduino/Camara/main/sd_storage.cpp: In function 'esp_err_t sd_storage_init()':
+/Users/oscariglesias/Documents/Arduino/Camara/main/sd_storage.cpp:61:5: warning: missing initializer for member 'spi_bus_config_t::data4_io_num' [-Wmissing-field-initializers]
+   61 |     };
+      |     ^
+/Users/oscariglesias/Documents/Arduino/Camara/main/sd_storage.cpp:61:5: warning: missing initializer for member 'spi_bus_config_t::data5_io_num' [-Wmissing-field-initializers]
+/Users/oscariglesias/Documents/Arduino/Camara/main/sd_storage.cpp:61:5: warning: missing initializer for member 'spi_bus_config_t::data6_io_num' [-Wmissing-field-initializers]
+/Users/oscariglesias/Documents/Arduino/Camara/main/sd_storage.cpp:61:5: warning: missing initializer for member 'spi_bus_config_t::data7_io_num' [-Wmissing-field-initializers]
+/Users/oscariglesias/Documents/Arduino/Camara/main/sd_storage.cpp:61:5: warning: missing initializer for member 'spi_bus_config_t::flags' [-Wmissing-field-initializers]
+/Users/oscariglesias/Documents/Arduino/Camara/main/sd_storage.cpp:61:5: warning: missing initializer for member 'spi_bus_config_t::isr_cpu_id' [-Wmissing-field-initializers]
+/Users/oscariglesias/Documents/Arduino/Camara/main/sd_storage.cpp:61:5: warning: missing initializer for member 'spi_bus_config_t::intr_flags' [-Wmissing-field-initializers]
+[46/54] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/main.cpp.obj
+[47/54] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/ble_transfer.cpp.obj
+[48/54] Linking C static library esp-idf/bt/libbt.a
+[49/54] Linking C static library esp-idf/main/libmain.a
+[50/54] Generating ld/sections.ld
+[51/54] Linking CXX executable CamaraESP32.elf
+[52/54] Generating binary image from built executable
+esptool.py v4.11.0
+Creating esp32s3 image...
+Merged 2 ELF sections
+Successfully created esp32s3 image.
+Generated /Users/oscariglesias/Documents/Arduino/Camara/build/CamaraESP32.bin
+[53/54] cd /Users/oscariglesias/Documents/Arduino/Camara/build/esp-idf/esptool_py && /Users/oscariglesias/.espressif/python_env/idf5.2_py3.9_env/bin/python /Users/oscariglesias/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app /Users/oscariglesias/Documents/Arduino/Camara/build/partition_table/partition-table.bin /Users/oscariglesias/Documents/Arduino/Camara/build/CamaraESP32.bin
+CamaraESP32.bin binary size 0xbdcf0 bytes. Smallest app partition is 0x300000 bytes. 0x242310 bytes (75%) free.
+[53/54] cd /Users/oscariglesias/esp/esp-idf/components/esptool_py && /opt/homebrew/bin/cmake -D IDF_PATH=/Users/oscariglesias/esp/esp-idf -D "SERIAL_TOOL=/Users/oscariglesias/.espressif/python_env/idf5.2_py3.9_env/bin/python;;/Users/oscariglesias/esp/esp-idf/components/esptool_py/esptool/esptool.py;--chip;esp32s3" -D "SERIAL_TOOL_ARGS=--before=default_reset;--after=hard_reset;write_flash;@flash_args" -D WORKING_DIRECTORY=/Users/oscariglesias/Documents/Arduino/Camara/build -P /Users/oscariglesias/esp/esp-idf/components/esptool_py/run_serial_tool.cmake
+esptool.py --chip esp32s3 -p /dev/cu.usbmodem23201 -b 460800 --before=default_reset --after=hard_reset write_flash --flash_mode dio --flash_freq 80m --flash_size 8MB 0x0 bootloader/bootloader.bin 0x10000 CamaraESP32.bin 0x8000 partition_table/partition-table.bin
+esptool.py v4.11.0
+Serial port /dev/cu.usbmodem23201
+Connecting...
+Chip is ESP32-S3 (QFN56) (revision v0.2)
+Features: WiFi, BLE, Embedded PSRAM 8MB (AP_3v3)
+Crystal is 40MHz
+USB mode: USB-Serial/JTAG
+MAC: e0:72:a1:fb:eb:f4
+Uploading stub...
+Running stub...
+Stub running...
+Changing baud rate to 460800
+Changed.
+Configuring flash size...
+Flash will be erased from 0x00000000 to 0x00005fff...
+Flash will be erased from 0x00010000 to 0x000cdfff...
+Flash will be erased from 0x00008000 to 0x00008fff...
+SHA digest in image updated
+Compressed 21072 bytes to 13060...
+Writing at 0x00000000... (100 %)
+Wrote 21072 bytes (13060 compressed) at 0x00000000 in 0.3 seconds (effective 491.1 kbit/s)...
+Hash of data verified.
+Compressed 777456 bytes to 451749...
+Writing at 0x00010000... (3 %)
+Writing at 0x0001dc14... (7 %)
+Writing at 0x0002931d... (10 %)
+Writing at 0x0002f896... (14 %)
+Writing at 0x00034b32... (17 %)
+Writing at 0x0003e4f1... (21 %)
+Writing at 0x0004476a... (25 %)
+Writing at 0x0004abcc... (28 %)
+Writing at 0x00051195... (32 %)
+Writing at 0x000570ff... (35 %)
+Writing at 0x0005d200... (39 %)
+Writing at 0x00062a94... (42 %)
+Writing at 0x00068512... (46 %)
+Writing at 0x0006de47... (50 %)
+Writing at 0x00074085... (53 %)
+Writing at 0x0007c15d... (57 %)
+Writing at 0x00082acf... (60 %)
+Writing at 0x00088d84... (64 %)
+Writing at 0x0008ec21... (67 %)
+Writing at 0x0009518b... (71 %)
+Writing at 0x0009b07a... (75 %)
+Writing at 0x000a0679... (78 %)
+Writing at 0x000a70d8... (82 %)
+Writing at 0x000b1dc5... (85 %)
+Writing at 0x000b82a6... (89 %)
+Writing at 0x000bd6b9... (92 %)
+Writing at 0x000c3847... (96 %)
+Writing at 0x000ca30b... (100 %)
+Wrote 777456 bytes (451749 compressed) at 0x00010000 in 4.9 seconds (effective 1263.7 kbit/s)...
+Hash of data verified.
+Compressed 3072 bytes to 136...
+Writing at 0x00008000... (100 %)
+Wrote 3072 bytes (136 compressed) at 0x00008000 in 0.0 seconds (effective 533.8 kbit/s)...
+Hash of data verified.
+
+Leaving...
+Hard resetting via RTS pin...

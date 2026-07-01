@@ -20,9 +20,9 @@ extern "C" {
 // Información de un archivo de foto
 typedef struct {
     char     filename[64];      // Nombre del archivo (sin ruta)
-    char     full_path[128];    // Ruta completa incluyendo mount point
+    char     full_path[300];    // Ruta completa incluyendo mount point
     uint32_t size_bytes;        // Tamaño del archivo en bytes
-    char     timestamp[20];     // "YYYY-MM-DD HH:MM:SS"
+    char     timestamp[24];     // "YYYY-MM-DD HH:MM:SS"
 } photo_info_t;
 
 // Resultado de listado de fotos
@@ -66,14 +66,19 @@ bool sd_storage_is_ready(void);
 esp_err_t sd_save_photo(const uint8_t* jpeg_data, size_t jpeg_size, char* out_filename);
 
 /**
- * @brief Lista todas las fotos en el directorio DCIM
- *
- * Devuelve un struct con array de fotos. DEBE liberarse con sd_free_photo_list().
- *
- * @param[out] list  Struct rellenado con la lista
- * @return ESP_OK en éxito
+ * @brief Obtiene el listado completo de fotos
+ * 
+ * @param out_list Puntero donde se guardará el listado. El usuario debe liberar (sd_free_list).
+ * @return esp_err_t ESP_OK si es correcto
  */
-esp_err_t sd_list_photos(photo_list_t* list);
+esp_err_t sd_list_photos(photo_list_t* out_list);
+
+/**
+ * @brief Genera un string JSON con la lista de archivos
+ * 
+ * @return char* String JSON alojado con malloc. El llamador debe hacer free().
+ */
+char* sd_list_files_json(void);
 
 /**
  * @brief Libera la memoria de una lista de fotos
@@ -92,6 +97,15 @@ void sd_free_photo_list(photo_list_t* list);
  * @return ESP_OK en éxito, ESP_ERR_NOT_FOUND si no existe
  */
 esp_err_t sd_read_photo(const char* filename, uint8_t** data, size_t* size);
+
+/**
+ * @brief Abre un archivo de la MicroSD y devuelve el FILE descriptor
+ *
+ * @param filename Nombre del archivo (solo nombre, sin ruta)
+ * @param mode Modo de apertura ("r", "w", etc)
+ * @return FILE* o NULL si hay error
+ */
+FILE* sd_open_file(const char* filename, const char* mode);
 
 /**
  * @brief Borra una foto de la MicroSD

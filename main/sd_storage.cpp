@@ -12,9 +12,10 @@
 #include <errno.h>
 #include <time.h>
 
+#pragma GCC diagnostic ignored "-Wformat-truncation"
 #include "esp_log.h"
+#include "driver/spi_master.h"
 #include "esp_vfs_fat.h"
-#include "driver/sdmmc_host.h"
 #include "sdmmc_cmd.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -29,7 +30,7 @@ static SemaphoreHandle_t s_sd_mutex   = NULL;  // Mutex para acceso thread-safe
 static uint32_t          s_photo_counter = 0;   // Contador para evitar colisiones de nombre
 
 // =============================================================================
-// Inicialización SDMMC
+// Inicialización SD (SPI)
 // =============================================================================
 esp_err_t sd_storage_init(void) {
     if (s_mounted) {
@@ -44,37 +45,45 @@ esp_err_t sd_storage_init(void) {
         return ESP_ERR_NO_MEM;
     }
 
-    ESP_LOGI(TAG, "Montando MicroSD en modo SDMMC 4-bit...");
+    ESP_LOGI(TAG, "Montando MicroSD en modo SPI (XIAO Sense)...");
 
-    // Configurar host SDMMC
-    sdmmc_host_t host = SDMMC_HOST_DEFAULT();
-    host.max_freq_khz = SDMMC_FREQ_HIGHSPEED;  // 40 MHz — máxima velocidad
-
-    // Configurar pines SDMMC
-    sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
-    slot_config.width = 4;  // Modo 4-bit
-    slot_config.clk   = (gpio_num_t)SD_MMC_PIN_CLK;
-    slot_config.cmd   = (gpio_num_t)SD_MMC_PIN_CMD;
-    slot_config.d0    = (gpio_num_t)SD_MMC_PIN_D0;
-    slot_config.d1    = (gpio_num_t)SD_MMC_PIN_D1;
-    slot_config.d2    = (gpio_num_t)SD_MMC_PIN_D2;
-    slot_config.d3    = (gpio_num_t)SD_MMC_PIN_D3;
-    slot_config.flags |= SDMMC_SLOT_FLAG_INTERNAL_PULLUP;  // Pull-ups internos
-
-    // Opciones de montaje FAT
-    esp_vfs_fat_sdmmc_mount_config_t mount_config = {
-        .format_if_mount_failed = false,       // NO formatear si falla
-        .max_files              = SD_MAX_FILES,
-        .allocation_unit_size   = SD_ALLOC_UNIT_SIZE,
+    // Configurar el bus SPI
+    esp_err_t err;
+    sdmmc_host_t host = SDSPI_HOST_DEFAULT();
+    
+    spi_bus_config_t bus_cfg = {
+        .mosi_io_num = SD_SPI_PIN_MOSI,
+        .miso_io_num = SD_SPI_PIN_MISO,
+        .sclk_io_num = SD_SPI_PIN_SCK,
+        .quadwp_io_num = -1,
+        .quadhd_io_num = -1,
+        .max_transfer_sz = 4000,
     };
 
-    esp_err_t err = esp_vfs_fat_sdmmc_mount(
+    err = spi_bus_initialize((spi_host_device_t)host.slot, &bus_cfg, SDSPI_DEFAULT_DMA);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Error inicializando bus SPI");
+        return err;
+    }
+
+    // Configurar los pines de la SD
+    sdspi_device_config_t slot_config = SDSPI_DEVICE_CONFIG_DEFAULT();
+    slot_config.gpio_cs = (gpio_num_t)SD_SPI_PIN_CS;
+    slot_config.host_id = (spi_host_device_t)host.slot;
+
+    // Opciones de montaje FAT
+    esp_vfs_fat_sdmmc_mount_config_t mount_config = {};
+    mount_config.format_if_mount_failed = false;
+    mount_config.max_files              = SD_MAX_FILES;
+    mount_config.allocation_unit_size   = SD_ALLOC_UNIT_SIZE;
+
+    err = esp_vfs_fat_sdspi_mount(
         SD_MOUNT_POINT, &host, &slot_config, &mount_config, &s_card
     );
 
     if (err != ESP_OK) {
         if (err == ESP_FAIL) {
-            ESP_LOGE(TAG, "Fallo al montar FAT32. ¿Tarjeta formateada?");
+            ESP_LOGE(TAG, "Fallo al montar FAT32. ¿Tarjeta formateada o conectada?");
         } else {
             ESP_LOGE(TAG, "Error al inicializar SD: %s", esp_err_to_name(err));
         }
@@ -185,15 +194,18 @@ esp_err_t sd_list_photos(photo_list_t* list) {
     uint32_t count = 0;
     struct dirent* entry;
     while ((entry = readdir(dir)) != NULL) {
-        if (entry->d_type == DT_REG) {
-            const char* name = entry->d_name;
-            size_t len = strlen(name);
-            // Solo archivos .jpg o .jpeg
-            if (len > 4 &&
-                (strcasecmp(name + len - 4, ".jpg")  == 0 ||
-                 strcasecmp(name + len - 5, ".jpeg") == 0)) {
-                count++;
-            }
+        if (entry->d_type == DT_DIR) continue; // Ignorar directorios si los detecta
+
+        const char* name = entry->d_name;
+        // Ignorar archivos ocultos o de metadatos de Mac (ej. ._FOTO.jpg)
+        if (name[0] == '.') continue;
+        
+        size_t len = strlen(name);
+        // Solo archivos .jpg o .jpeg
+        if (len > 4 &&
+            (strcasecmp(name + len - 4, ".jpg")  == 0 ||
+             strcasecmp(name + len - 5, ".jpeg") == 0)) {
+            count++;
         }
     }
 
@@ -215,8 +227,11 @@ esp_err_t sd_list_photos(photo_list_t* list) {
     rewinddir(dir);
     uint32_t idx = 0;
     while ((entry = readdir(dir)) != NULL && idx < count) {
-        if (entry->d_type != DT_REG) continue;
+        if (entry->d_type == DT_DIR) continue;
+        
         const char* name = entry->d_name;
+        if (name[0] == '.') continue;
+        
         size_t len = strlen(name);
         if (!(len > 4 && (strcasecmp(name + len - 4, ".jpg") == 0 ||
                           strcasecmp(name + len - 5, ".jpeg") == 0))) {
@@ -259,16 +274,61 @@ esp_err_t sd_list_photos(photo_list_t* list) {
 }
 
 void sd_free_photo_list(photo_list_t* list) {
-    if (list && list->photos) {
+    if (!list) return;
+    if (list->photos) {
         free(list->photos);
         list->photos = NULL;
-        list->count  = 0;
     }
+    list->count = 0;
+    list->total_bytes = 0;
 }
+
+char* sd_list_files_json(void) {
+    photo_list_t list = {0};
+    if (sd_list_photos(&list) != ESP_OK) {
+        return strdup("[]");
+    }
+
+    // Calcular tamaño aproximado del JSON
+    // Formato: [{"name":"FOTO...","size":12345,"date":"2023-..."}]
+    size_t json_size = 10; // "[]" + null terminator + padding
+    for (uint32_t i = 0; i < list.count; i++) {
+        json_size += 100 + strlen(list.photos[i].filename) + strlen(list.photos[i].timestamp);
+    }
+
+    char* json = (char*)malloc(json_size);
+    if (!json) {
+        sd_free_photo_list(&list);
+        return NULL;
+    }
+
+    strcpy(json, "[");
+    for (uint32_t i = 0; i < list.count; i++) {
+        char item[128];
+        snprintf(item, sizeof(item), "{\"name\":\"%s\",\"size\":%lu,\"date\":\"%s\"}%s", 
+                 list.photos[i].filename, 
+                 (unsigned long)list.photos[i].size_bytes, 
+                 list.photos[i].timestamp,
+                 (i < list.count - 1) ? "," : "");
+        strcat(json, item);
+    }
+    strcat(json, "]");
+
+    sd_free_photo_list(&list);
+    return json;
+}
+
 
 // =============================================================================
 // Leer foto
 // =============================================================================
+FILE* sd_open_file(const char* filename, const char* mode) {
+    if (!s_mounted) return NULL;
+    char path[SD_MAX_FILENAME_LEN + 32];
+    snprintf(path, sizeof(path), "%s/%s", SD_DCIM_DIR, filename);
+    return fopen(path, mode);
+}
+
 esp_err_t sd_read_photo(const char* filename, uint8_t** data, size_t* size) {
     if (!s_mounted || !filename || !data || !size) return ESP_ERR_INVALID_ARG;
 

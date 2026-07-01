@@ -1,0 +1,12 @@
+CMake Error at /Users/oscariglesias/esp/esp-idf/tools/cmake/component.cmake:155 (message):
+  Directory
+  '/Users/oscariglesias/Documents/Arduino/Camara/managed_components/espressif__esp-who'
+  does not contain a component.
+Call Stack (most recent call first):
+  /Users/oscariglesias/esp/esp-idf/tools/cmake/build.cmake:258 (__component_add)
+  build/managed_components_list.temp.cmake:1 (idf_build_component)
+  /Users/oscariglesias/esp/esp-idf/tools/cmake/build.cmake:547 (include)
+  /Users/oscariglesias/esp/esp-idf/tools/cmake/project.cmake:605 (idf_build_process)
+  CMakeLists.txt:4 (project)
+
+

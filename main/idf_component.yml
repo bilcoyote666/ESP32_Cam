@@ -1,0 +1,7 @@
+## IDF Component Manager — Dependencias del Proyecto
+dependencies:
+  idf: ">=5.0.0"
+
+  ## esp32-camera — Driver oficial para OV5640, OV2640, etc.
+  espressif/esp32-camera:
+    version: ">=2.0.0"

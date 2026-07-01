@@ -27,9 +27,10 @@ static bool               s_led_state       = false;
 // =============================================================================
 // Control físico del LED
 // =============================================================================
-static inline void led_on(void)  { gpio_set_level((gpio_num_t)PIN_LED_STATUS, 1); s_led_state = true;  }
-static inline void led_off(void) { gpio_set_level((gpio_num_t)PIN_LED_STATUS, 0); s_led_state = false; }
+static inline void led_on(void)  { if(PIN_LED_STATUS==-1) return; gpio_set_level((gpio_num_t)PIN_LED_STATUS, 1); s_led_state = true;  }
+static inline void led_off(void) { if(PIN_LED_STATUS==-1) return; gpio_set_level((gpio_num_t)PIN_LED_STATUS, 0); s_led_state = false; }
 static inline void led_toggle(void) {
+    if(PIN_LED_STATUS==-1) return;
     s_led_state = !s_led_state;
     gpio_set_level((gpio_num_t)PIN_LED_STATUS, s_led_state ? 1 : 0);
 }
@@ -126,7 +127,15 @@ static void blink_timer_cb(void* arg) {
 // =============================================================================
 // API Pública
 // =============================================================================
+// =============================================================================
+// API Pública
+// =============================================================================
 esp_err_t led_init(void) {
+    if (PIN_LED_STATUS == -1) {
+        ESP_LOGI(TAG, "LED desactivado en config.h (PIN_LED_STATUS = -1)");
+        return ESP_OK;
+    }
+
     ESP_LOGI(TAG, "Inicializando LED de estado en GPIO%d", PIN_LED_STATUS);
 
     // Configurar GPIO como salida

@@ -15,52 +15,47 @@ static const char* TAG = "BUTTON";
 
 static button_event_cb_t s_callback    = NULL;
 static void*             s_user_data   = NULL;
-static esp_timer_handle_t s_debounce_timer  = NULL;
-static esp_timer_handle_t s_long_press_timer = NULL;
+static esp_timer_handle_t s_poll_timer = NULL;
 static volatile bool      s_long_press_fired = false;
+static volatile bool      s_extra_long_press_fired = false;
+
+#define BTN_EXTRA_LONG_PRESS_MS 10000 // 10 segundos
 
 // =============================================================================
-// Timers de debounce y pulsación larga
+// Timer de polling (20ms)
 // =============================================================================
-
-// Llamado después del debounce: determina si el botón sigue presionado
-static void debounce_timer_cb(void* arg) {
-    // Leer el estado actual del botón (nivel LOW = presionado con pull-up)
+static void poll_timer_cb(void* arg) {
+    static int s_btn_state = 1;
+    static int s_press_time = 0;
+    
     int level = gpio_get_level((gpio_num_t)PIN_BTN_CAPTURE);
-
-    if (level == 0) {
-        // Botón presionado — iniciar timer de pulsación larga
-        s_long_press_fired = false;
-        esp_timer_start_once(s_long_press_timer, BTN_LONG_PRESS_MS * 1000ULL);
-        ESP_LOGD(TAG, "Botón presionado");
-    } else {
-        // Botón soltado
-        esp_timer_stop(s_long_press_timer);
-
-        if (!s_long_press_fired) {
-            // Era una pulsación corta
-            ESP_LOGI(TAG, "Pulsación CORTA detectada");
-            if (s_callback) s_callback(BTN_EVENT_SHORT_PRESS, s_user_data);
+    if (level == 0) { // Presionado (LOW)
+        if (s_btn_state == 1) { // Recién presionado
+            s_btn_state = 0;
+            s_press_time = 0;
+            s_long_press_fired = false;
+            s_extra_long_press_fired = false;
+        } else {
+            s_press_time += 20;
+            if (s_press_time >= BTN_EXTRA_LONG_PRESS_MS && !s_extra_long_press_fired) {
+                s_extra_long_press_fired = true;
+                ESP_LOGI(TAG, "Pulsación MUY LARGA detectada (10s)");
+                if (s_callback) s_callback(BTN_EVENT_EXTRA_LONG_PRESS, s_user_data);
+            } else if (s_press_time >= BTN_LONG_PRESS_MS && !s_long_press_fired && !s_extra_long_press_fired) {
+                s_long_press_fired = true;
+                ESP_LOGI(TAG, "Pulsación LARGA detectada");
+                if (s_callback) s_callback(BTN_EVENT_LONG_PRESS, s_user_data);
+            }
         }
-        // Si s_long_press_fired == true, el evento largo ya se emitió
+    } else { // Soltado (HIGH)
+        if (s_btn_state == 0) { // Recién soltado
+            s_btn_state = 1;
+            if (!s_long_press_fired && !s_extra_long_press_fired && s_press_time >= BTN_DEBOUNCE_MS) {
+                ESP_LOGI(TAG, "Pulsación CORTA detectada");
+                if (s_callback) s_callback(BTN_EVENT_SHORT_PRESS, s_user_data);
+            }
+        }
     }
-}
-
-// Llamado si el botón se mantiene presionado > BTN_LONG_PRESS_MS
-static void long_press_timer_cb(void* arg) {
-    s_long_press_fired = true;
-    ESP_LOGI(TAG, "Pulsación LARGA detectada");
-    if (s_callback) s_callback(BTN_EVENT_LONG_PRESS, s_user_data);
-}
-
-// =============================================================================
-// ISR del GPIO (llamado en cada flanco del botón)
-// =============================================================================
-static void IRAM_ATTR gpio_isr_handler(void* arg) {
-    // Reiniciar el timer de debounce desde la ISR
-    // Usamos esp_timer_stop/start que son ISR-safe
-    esp_timer_stop(s_debounce_timer);
-    esp_timer_start_once(s_debounce_timer, BTN_DEBOUNCE_MS * 1000ULL);
 }
 
 // =============================================================================
@@ -74,7 +69,7 @@ esp_err_t button_init(button_event_cb_t callback, void* user_data) {
 
     // Configurar GPIO como entrada con pull-up
     gpio_config_t io_conf = {};
-    io_conf.intr_type    = GPIO_INTR_ANYEDGE;   // Interrupción en ambos flancos
+    io_conf.intr_type    = GPIO_INTR_DISABLE;
     io_conf.mode         = GPIO_MODE_INPUT;
     io_conf.pin_bit_mask = (1ULL << PIN_BTN_CAPTURE);
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
@@ -86,37 +81,18 @@ esp_err_t button_init(button_event_cb_t callback, void* user_data) {
         return ret;
     }
 
-    // Crear timer de debounce (one-shot)
-    esp_timer_create_args_t debounce_args = {
-        .callback        = debounce_timer_cb,
+    // Crear timer de polling periódico (20ms)
+    esp_timer_create_args_t poll_args = {
+        .callback        = poll_timer_cb,
         .arg             = NULL,
         .dispatch_method = ESP_TIMER_TASK,
-        .name            = "btn_debounce",
+        .name            = "btn_poll",
         .skip_unhandled_events = true,
     };
-    ret = esp_timer_create(&debounce_args, &s_debounce_timer);
-    if (ret != ESP_OK) { ESP_LOGE(TAG, "Error creando timer debounce"); return ret; }
+    ret = esp_timer_create(&poll_args, &s_poll_timer);
+    if (ret != ESP_OK) { ESP_LOGE(TAG, "Error creando timer poll"); return ret; }
 
-    // Crear timer de pulsación larga (one-shot)
-    esp_timer_create_args_t longpress_args = {
-        .callback        = long_press_timer_cb,
-        .arg             = NULL,
-        .dispatch_method = ESP_TIMER_TASK,
-        .name            = "btn_longpress",
-        .skip_unhandled_events = true,
-    };
-    ret = esp_timer_create(&longpress_args, &s_long_press_timer);
-    if (ret != ESP_OK) { ESP_LOGE(TAG, "Error creando timer long press"); return ret; }
-
-    // Instalar servicio de ISR (si no está ya instalado)
-    gpio_install_isr_service(0);
-
-    // Registrar handler específico para este GPIO
-    ret = gpio_isr_handler_add((gpio_num_t)PIN_BTN_CAPTURE, gpio_isr_handler, NULL);
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Error añadiendo ISR handler: %s", esp_err_to_name(ret));
-        return ret;
-    }
+    esp_timer_start_periodic(s_poll_timer, 20 * 1000ULL);
 
     ESP_LOGI(TAG, "Botón inicializado (corto < %dms, largo >= %dms)",
              BTN_LONG_PRESS_MS, BTN_LONG_PRESS_MS);
@@ -128,9 +104,7 @@ bool button_is_pressed(void) {
 }
 
 void button_deinit(void) {
-    gpio_isr_handler_remove((gpio_num_t)PIN_BTN_CAPTURE);
-    if (s_debounce_timer)  { esp_timer_stop(s_debounce_timer);  esp_timer_delete(s_debounce_timer);  }
-    if (s_long_press_timer){ esp_timer_stop(s_long_press_timer); esp_timer_delete(s_long_press_timer); }
+    if (s_poll_timer)  { esp_timer_stop(s_poll_timer);  esp_timer_delete(s_poll_timer);  }
     s_callback  = NULL;
     s_user_data = NULL;
     ESP_LOGI(TAG, "Botón deinicializado");

@@ -16,6 +16,7 @@ extern "C" {
 typedef enum {
     BTN_EVENT_SHORT_PRESS = 0,  // Pulsación corta (< BTN_LONG_PRESS_MS)
     BTN_EVENT_LONG_PRESS  = 1,  // Pulsación larga (>= BTN_LONG_PRESS_MS)
+    BTN_EVENT_EXTRA_LONG_PRESS = 2, // Pulsación MUY larga (para reset)
 } button_event_t;
 
 // Callback para eventos del botón

@@ -2,9 +2,9 @@
  * @file main.cpp
  * @brief Punto de entrada principal — CámaraESP32 con OV5640
  *
- * Placa:   Freenove ESP32-S3-WROOM CAM (N16R8)
+ * Placa:   Seeed Studio XIAO ESP32S3 Sense
  * Cámara:  OV5640 5MP con autoenfoque hardware
- * Storage: MicroSD via SDMMC 4-bit
+ * Storage: MicroSD via SPI
  * Radio:   BLE 5.0 (NimBLE) + BT Classic SPP
  *
  * Arquitectura de tareas FreeRTOS:
@@ -33,18 +33,19 @@
 #include "esp_err.h"
 #include "nvs_flash.h"
 #include "esp_bt.h"
-#include "esp_bt_main.h"
 #include "esp_system.h"
 #include "esp_timer.h"
 
 #include "config.h"
 #include "camera.h"
+#include "auth.h"
 #include "face_detect.h"
 #include "sd_storage.h"
-#include "ble_transfer.h"
-#include "bt_classic.h"
+#include "wifi_ap.h"
+#include "http_server.h"
 #include "button.h"
 #include "led.h"
+#include "ble_transfer.h"
 
 static const char* TAG = "MAIN";
 
@@ -114,12 +115,25 @@ static void on_button_event(button_event_t event, void* user_data) {
         msg.trigger     = MSG_BURST_START;
         msg.burst_count = 3;
         xQueueSend(s_capture_queue, &msg, 0);
+    } else if (event == BTN_EVENT_EXTRA_LONG_PRESS) {
+        ESP_LOGI(TAG, "Botón: pulsación MUY larga (10s) → reseteando contraseña");
+        auth_clear_password();
+        // Opcional: parpadear el LED y reiniciar el ESP
+        for(int i = 0; i < 5; i++) {
+            led_update_from_state(SYS_STATE_ERROR_CAM); // Hace que parpadee rojo
+            vTaskDelay(pdMS_TO_TICKS(200));
+            led_update_from_state(SYS_STATE_READY);
+            vTaskDelay(pdMS_TO_TICKS(200));
+        }
+        ESP_LOGI(TAG, "Reiniciando el sistema...");
+        esp_restart();
     }
 }
 
 // =============================================================================
 // CALLBACK: BLE solicita captura
 // =============================================================================
+/*
 static void on_ble_capture_request(void* user_data) {
     ESP_LOGI(TAG, "BLE: solicitud de captura remota");
     capture_msg_t msg = {
@@ -128,6 +142,7 @@ static void on_ble_capture_request(void* user_data) {
     };
     xQueueSend(s_capture_queue, &msg, 0);
 }
+*/
 
 // =============================================================================
 // TAREA DE CAPTURA — Core 1
@@ -208,7 +223,6 @@ static void capture_task(void* pvParam) {
 
             // 6. Notificar a BLE y BT Classic
             ble_transfer_notify_new_photo(last_filename);
-            bt_classic_notify_new_photo(last_filename);
 
             // 7. Volver a modo DETECT para el siguiente frame
             camera_set_mode(CAMERA_MODE_DETECT);
@@ -240,7 +254,7 @@ static void capture_task(void* pvParam) {
 extern "C" void app_main(void) {
     ESP_LOGI(TAG, "=============================================");
     ESP_LOGI(TAG, "  CámaraESP32 — Firmware v%s", FIRMWARE_VERSION);
-    ESP_LOGI(TAG, "  Placa: Freenove ESP32-S3-WROOM CAM");
+    ESP_LOGI(TAG, "  Placa: Seeed Studio XIAO ESP32S3 Sense");
     ESP_LOGI(TAG, "  Cámara: OV5640 5MP");
     ESP_LOGI(TAG, "=============================================");
 
@@ -304,34 +318,21 @@ extern "C" void app_main(void) {
     ESP_LOGI(TAG, "[5/8] Cola de captura creada ✓");
 
     // -------------------------------------------------------------------------
-    // 6. Inicializar Bluetooth (NVS debe estar ya init)
+    // 6. Inicializar WiFi AP y Servidor HTTP
     // -------------------------------------------------------------------------
-    // Liberar memoria de Classic o BLE según configuración
-    // Usamos modo completo (BT Classic + BLE) → no liberamos nada
-    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_IDLE));
+    // Liberar memoria de Classic BT ya que no lo usamos
+    // ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
+    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_BLE));
 
-    esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK(esp_bt_controller_init(&bt_cfg));
-    ESP_ERROR_CHECK(esp_bt_controller_enable(ESP_BT_MODE_BTDM));  // BT Classic + BLE
-    ESP_ERROR_CHECK(esp_bluedroid_init());
-    ESP_ERROR_CHECK(esp_bluedroid_enable());
-
-    // Inicializar BLE (NimBLE) para iPhone/Mac/Android moderno
-    err = ble_transfer_init(on_ble_capture_request, NULL);
-    if (err != ESP_OK) {
-        ESP_LOGW(TAG, "[6/8] BLE no disponible: %s", esp_err_to_name(err));
+    err = wifi_ap_init();
+    if (err == ESP_OK) {
+        ESP_LOGI(TAG, "[6/8] WiFi AP inicializado ✓");
+        if (http_server_start() == ESP_OK) {
+            ESP_LOGI(TAG, "[6/8] Servidor HTTP inicializado ✓");
+        }
     } else {
-        ESP_LOGI(TAG, "[6/8] BLE (NimBLE) inicializado ✓");
+        ESP_LOGW(TAG, "[6/8] WiFi no disponible: %s", esp_err_to_name(err));
     }
-
-    // Inicializar BT Classic SPP para PC/Android legacy
-    err = bt_classic_init(on_ble_capture_request, NULL);
-    if (err != ESP_OK) {
-        ESP_LOGW(TAG, "       BT Classic no disponible: %s", esp_err_to_name(err));
-    } else {
-        ESP_LOGI(TAG, "       BT Classic SPP inicializado ✓");
-    }
-
     // -------------------------------------------------------------------------
     // 7. Inicializar Face Detection
     // -------------------------------------------------------------------------
@@ -360,8 +361,8 @@ extern "C" void app_main(void) {
     // -------------------------------------------------------------------------
     ESP_LOGI(TAG, "");
     ESP_LOGI(TAG, "✓ Sistema listo");
-    ESP_LOGI(TAG, "  BLE:         Busca '%s' en tu dispositivo", BLE_DEVICE_NAME);
-    ESP_LOGI(TAG, "  BT Classic:  Empareja '%s' en PC/Android", BT_CLASSIC_DEVICE_NAME);
+    ESP_LOGI(TAG, "  WiFi:        Conéctate a la red '%s'", WIFI_AP_SSID);
+    ESP_LOGI(TAG, "  Portal:      Se abrirá automáticamente, o ve a http://192.168.4.1");
     ESP_LOGI(TAG, "  Botón:       GPIO%d (BOOT button)", PIN_BTN_CAPTURE);
     ESP_LOGI(TAG, "  LED:         GPIO%d (estado del sistema)", PIN_LED_STATUS);
     ESP_LOGI(TAG, "");
@@ -401,8 +402,7 @@ extern "C" void app_main(void) {
 
             ESP_LOGI(TAG, "--- ESTADO ---");
             ESP_LOGI(TAG, "  Sistema:     %d", (int)s_sys_state);
-            ESP_LOGI(TAG, "  BLE:         %s", ble_transfer_is_connected() ? "conectado" : "advertising");
-            ESP_LOGI(TAG, "  BT Classic:  %s", bt_classic_is_connected() ? "conectado" : "disponible");
+            ESP_LOGI(TAG, "  WiFi:        AP activo");
             ESP_LOGI(TAG, "  SD Libre:    %.1f GB", free_b / 1024.0 / 1024.0 / 1024.0);
             ESP_LOGI(TAG, "  Face FPS:    %.1f", face_detect_get_fps());
             ESP_LOGI(TAG, "  RAM libre:   %lu KB", esp_get_free_heap_size() / 1024);

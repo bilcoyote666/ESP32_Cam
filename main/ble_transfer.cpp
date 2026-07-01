@@ -16,8 +16,21 @@
 #include "sd_storage.h"
 #include "config.h"
 
+#define BLE_CMD_LIST_FILES   0x01
+#define BLE_CMD_GET_FILE     0x02
+#define BLE_CMD_DELETE_FILE  0x03
+#define BLE_CMD_CANCEL       0x04
+#define BLE_CMD_CAPTURE_NOW  0x05
+#define BLE_CMD_GET_STATUS   0x06
+
+#define BLE_MTU_SIZE         512
+#define BLE_CHUNK_SIZE       240
+
+
 #include <string.h>
 #include <stdlib.h>
+
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 
 #include "esp_log.h"
 #include "nvs_flash.h"
@@ -311,36 +324,36 @@ static const struct ble_gatt_svc_def s_gatt_svcs[] = {
             {
                 .uuid       = &s_chr_file_list_uuid.u,
                 .access_cb  = gatt_access_cb,
-                .val_handle = &s_handle_file_list,
                 .flags      = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_NOTIFY,
+                .val_handle = &s_handle_file_list,
             },
             // FILE_REQUEST: Write Without Response
             {
                 .uuid       = &s_chr_file_request_uuid.u,
                 .access_cb  = gatt_access_cb,
-                .val_handle = &s_handle_file_request,
                 .flags      = BLE_GATT_CHR_F_WRITE | BLE_GATT_CHR_F_WRITE_NO_RSP,
+                .val_handle = &s_handle_file_request,
             },
             // FILE_DATA: Notify (chunks de datos JPEG)
             {
                 .uuid       = &s_chr_file_data_uuid.u,
                 .access_cb  = gatt_access_cb,
-                .val_handle = &s_handle_file_data,
                 .flags      = BLE_GATT_CHR_F_NOTIFY,
+                .val_handle = &s_handle_file_data,
             },
             // CONTROL: Write
             {
                 .uuid       = &s_chr_control_uuid.u,
                 .access_cb  = gatt_access_cb,
-                .val_handle = &s_handle_control,
                 .flags      = BLE_GATT_CHR_F_WRITE | BLE_GATT_CHR_F_WRITE_NO_RSP,
+                .val_handle = &s_handle_control,
             },
             // STATUS: Read + Notify
             {
                 .uuid       = &s_chr_status_uuid.u,
                 .access_cb  = gatt_access_cb,
-                .val_handle = &s_handle_status,
                 .flags      = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_NOTIFY,
+                .val_handle = &s_handle_status,
             },
             { 0 },  // Terminador
         },
@@ -450,7 +463,7 @@ esp_err_t ble_transfer_init(ble_capture_request_cb_t capture_cb, void* user_data
 
     // Configurar servicios GAP
     ble_svc_gap_init();
-    ble_svc_gap_device_name_set(BLE_DEVICE_NAME);
+    ble_svc_gap_device_name_set(DEVICE_NAME);
     ble_svc_gatt_init();
 
     // Registrar servicio GATT
@@ -477,24 +490,32 @@ esp_err_t ble_transfer_start_advertising(void) {
     struct ble_gap_adv_params adv_params = {};
     struct ble_hs_adv_fields fields      = {};
 
-    // Configurar datos de advertising
+    // Configurar datos de advertising primario
     fields.flags               = BLE_HS_ADV_F_DISC_GEN | BLE_HS_ADV_F_BREDR_UNSUP;
     fields.tx_pwr_lvl_is_present = 1;
     fields.tx_pwr_lvl          = BLE_HS_ADV_TX_PWR_LVL_AUTO;
 
+    // Añadir el Nombre al paquete primario para que sea visible rápidamente
     const char* name = ble_svc_gap_device_name();
     fields.name             = (uint8_t*)name;
     fields.name_len         = strlen(name);
     fields.name_is_complete = 1;
 
-    // Añadir UUID del servicio para que los clientes lo identifiquen
-    fields.uuids128             = &s_svc_uuid;
-    fields.num_uuids128         = 1;
-    fields.uuids128_is_complete = 1;
-
     int rc = ble_gap_adv_set_fields(&fields);
     if (rc != 0) {
         ESP_LOGE(TAG, "Error configurando advertising fields: %d", rc);
+        return ESP_FAIL;
+    }
+
+    // El UUID 128-bit lo ponemos en el paquete de Scan Response para no exceder los 31 bytes
+    struct ble_hs_adv_fields rsp_fields = {};
+    rsp_fields.uuids128             = &s_svc_uuid;
+    rsp_fields.num_uuids128         = 1;
+    rsp_fields.uuids128_is_complete = 1;
+
+    rc = ble_gap_adv_rsp_set_fields(&rsp_fields);
+    if (rc != 0) {
+        ESP_LOGE(TAG, "Error configurando scan response fields: %d", rc);
         return ESP_FAIL;
     }
 
@@ -512,7 +533,7 @@ esp_err_t ble_transfer_start_advertising(void) {
     }
 
     s_state = BLE_STATE_ADVERTISING;
-    ESP_LOGI(TAG, "BLE Advertising iniciado — busca '%s' en tu dispositivo", BLE_DEVICE_NAME);
+    ESP_LOGI(TAG, "BLE Advertising iniciado — busca '%s' en tu dispositivo", DEVICE_NAME);
     return ESP_OK;
 }
 

@@ -44,10 +44,10 @@ static const camera_config_t s_cam_config = {
     .ledc_timer     = LEDC_TIMER_0,
     .ledc_channel   = LEDC_CHANNEL_0,
 
-    // Modo inicial: DETECT (QVGA, rápido)
+    // Modo inicial: Inicializamos con el tamaño MAXIMO para que reserve memoria suficiente en PSRAM
     .pixel_format   = PIXFORMAT_JPEG,
-    .frame_size     = FRAMESIZE_QVGA,
-    .jpeg_quality   = CAM_JPEG_QUALITY_DETECT,
+    .frame_size     = CAM_FRAMESIZE_CAPTURE, // Usar MAX resolución al inicializar
+    .jpeg_quality   = CAM_JPEG_QUALITY_CAPTURE,
     .fb_count       = CAM_FB_COUNT_DETECT,
     .fb_location    = CAMERA_FB_IN_PSRAM,   // Frame buffers en PSRAM
     .grab_mode      = CAMERA_GRAB_WHEN_EMPTY,
@@ -153,6 +153,10 @@ esp_err_t camera_init(void) {
     sensor->set_dcw(sensor, 1);              // Downscale crop window ON
     sensor->set_colorbar(sensor, 0);         // Sin barra de color de prueba
 
+    // Forzar el modo a DETECT (QVGA) ya que iniciamos en modo CAPTURE
+    sensor->set_framesize(sensor, CAM_FRAMESIZE_DETECT);
+    sensor->set_quality(sensor, CAM_JPEG_QUALITY_DETECT);
+
     s_current_mode = CAMERA_MODE_DETECT;
     s_initialized  = true;
 
@@ -219,50 +223,13 @@ void camera_free_frame(camera_fb_t* fb) {
 af_result_t camera_trigger_autofocus(void) {
     if (!s_initialized) return AF_RESULT_FAILED;
 
-    ESP_LOGI(TAG, "Disparando autoenfoque OV5640...");
-
-    // Limpiar ACK anterior
-    esp_err_t err = ov5640_write_reg(OV5640_REG_CMD_ACK, 0x01);
-    if (err != ESP_OK) {
-        ESP_LOGW(TAG, "No se pudo comunicar con MCU AF del sensor: %s", esp_err_to_name(err));
-        // El AF puede no estar disponible si el firmware del sensor no está cargado
-        // En ese caso, continuamos sin AF
-        return AF_RESULT_TIMEOUT;
-    }
-
-    // Enviar comando de trigger AF
-    ov5640_write_reg(OV5640_REG_CMD_MAIN, OV5640_CMD_TRIGGER_AF);
-
-    // Esperar hasta que el sensor confirme enfoque o timeout
-    uint32_t start_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
-    uint8_t  status   = 0;
-
-    while (true) {
-        vTaskDelay(pdMS_TO_TICKS(50));  // Polling cada 50ms
-
-        err = ov5640_read_reg(OV5640_REG_FW_STATUS, &status);
-        if (err != ESP_OK) {
-            ESP_LOGW(TAG, "Error leyendo estado AF");
-            return AF_RESULT_FAILED;
-        }
-
-        if (status == OV5640_AF_FOCUSED) {
-            uint32_t elapsed = xTaskGetTickCount() * portTICK_PERIOD_MS - start_ms;
-            ESP_LOGI(TAG, "AF conseguido en %lu ms", elapsed);
-            return AF_RESULT_SUCCESS;
-        }
-
-        uint32_t elapsed = xTaskGetTickCount() * portTICK_PERIOD_MS - start_ms;
-        if (elapsed >= CAM_AF_TIMEOUT_MS) {
-            ESP_LOGW(TAG, "Timeout de AF (%lu ms)", elapsed);
-            return AF_RESULT_TIMEOUT;
-        }
-    }
+    ESP_LOGI(TAG, "Cámara OV2640 tiene enfoque fijo, saltando AF...");
+    return AF_RESULT_SUCCESS;
 }
 
 void camera_stop_autofocus(void) {
     if (!s_initialized) return;
-    ov5640_write_reg(OV5640_REG_CMD_MAIN, OV5640_CMD_PAUSE_AF);
+    // Nada que hacer para OV2640
 }
 
 void camera_set_brightness(int level) {

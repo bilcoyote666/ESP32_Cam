@@ -1,0 +1,9 @@
+[1/1114] Generating project_elf_src_esp32s3.c
+[2/1114] Generating ../../partition_table/partition-table.bin
+FAILED: [code=2] partition_table/partition-table.bin /Users/oscariglesias/Documents/Arduino/Camara/build/partition_table/partition-table.bin 
+cd /Users/oscariglesias/Documents/Arduino/Camara/build/esp-idf/partition_table && /Users/oscariglesias/.espressif/python_env/idf5.2_py3.9_env/bin/python /Users/oscariglesias/esp/esp-idf/components/partition_table/gen_esp32part.py -q --offset 0x8000 --flash-size 16MB -- /Users/oscariglesias/Documents/Arduino/Camara/partitions.csv /Users/oscariglesias/Documents/Arduino/Camara/build/partition_table/partition-table.bin && /opt/homebrew/bin/cmake -E echo "Partition table binary generated. Contents:" && /opt/homebrew/bin/cmake -E echo "*******************************************************************************" && /Users/oscariglesias/.espressif/python_env/idf5.2_py3.9_env/bin/python /Users/oscariglesias/esp/esp-idf/components/partition_table/gen_esp32part.py -q --offset 0x8000 --flash-size 16MB -- /Users/oscariglesias/Documents/Arduino/Camara/build/partition_table/partition-table.bin && /opt/homebrew/bin/cmake -E echo "*******************************************************************************"
+Error at line 8: Size field can't be empty
+Please check extra_partition_subtypes.inc file in build/config directory
+[3/1114] Generating /Users/oscariglesias/Documents/Arduino/Camara/build/esp-idf/esp_system/ld/sections.ld.in linker script...
+[4/1114] Generating /Users/oscariglesias/Documents/Arduino/Camara/build/esp-idf/esp_system/ld/memory.ld linker script...
+ninja: build stopped: subcommand failed.
