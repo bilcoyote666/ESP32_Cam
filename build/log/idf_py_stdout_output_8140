@@ -1,0 +1,203 @@
+[1/121] Building C object esp-idf/esp_adc/CMakeFiles/__idf_esp_adc.dir/esp32s3/curve_fitting_coefficients.c.obj
+[2/121] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/dh_group5.c.obj
+[3/121] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_peap_common.c.obj
+[4/121] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha1-prf.c.obj
+[5/121] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/port/os_xtensa.c.obj
+[6/121] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_tls.c.obj
+[7/121] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/pmksa_cache_auth.c.obj
+[8/121] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/ccmp.c.obj
+[9/121] Building C object esp-idf/esp_http_server/CMakeFiles/__idf_esp_http_server.dir/src/httpd_txrx.c.obj
+[10/121] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/rc4.c.obj
+[11/121] Building C object esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/dhcp6.c.obj
+[12/121] Building C object esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/apps/netbiosns/netbiosns.c.obj
+[13/121] Building C object esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/err.c.obj
+[14/121] Building C object esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/demand.c.obj
+[15/121] Building C object esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppos.c.obj
+[16/121] Building C object esp-idf/esp-tls/CMakeFiles/__idf_esp-tls.dir/esp_tls_mbedtls.c.obj
+[17/121] Building C object esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/ping/ping.c.obj
+[18/121] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/crypto/tls_mbedtls.c.obj
+[19/121] Building C object esp-idf/newlib/CMakeFiles/__idf_newlib.dir/assert.c.obj
+[20/121] Building CXX object esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_platform.cpp.obj
+[21/121] Building C object esp-idf/newlib/CMakeFiles/__idf_newlib.dir/termios.c.obj
+[22/121] Building C object esp-idf/newlib/CMakeFiles/__idf_newlib.dir/pthread.c.obj
+[23/121] Building C object esp-idf/soc/CMakeFiles/__idf_soc.dir/lldesc.c.obj
+[24/121] Building C object esp-idf/freertos/CMakeFiles/__idf_freertos.dir/heap_idf.c.obj
+[25/121] Building C object esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32s3/uart_periph.c.obj
+[26/121] Building ASM object esp-idf/esp_rom/CMakeFiles/__idf_esp_rom.dir/patches/esp_rom_cache_writeback_esp32s3.S.obj
+[27/121] Building C object esp-idf/heap/CMakeFiles/__idf_heap.dir/port/memory_layout_utils.c.obj
+[28/121] Building C object esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/tcp_out.c.obj
+[29/121] Building C object esp-idf/freertos/CMakeFiles/__idf_freertos.dir/FreeRTOS-Kernel/timers.c.obj
+[30/121] Building C object esp-idf/heap/CMakeFiles/__idf_heap.dir/multi_heap.c.obj
+[31/121] Building ASM object esp-idf/esp_system/CMakeFiles/__idf_esp_system.dir/port/arch/xtensa/expression_with_stack_asm.S.obj
+[32/121] Building C object esp-idf/esp_system/CMakeFiles/__idf_esp_system.dir/task_wdt/task_wdt_impl_timergroup.c.obj
+[33/121] Building C object esp-idf/esp_system/CMakeFiles/__idf_esp_system.dir/port/esp_ipc_isr.c.obj
+[34/121] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/rsn_supp/wpa.c.obj
+[35/121] Building C object esp-idf/esp_system/CMakeFiles/__idf_esp_system.dir/port/brownout.c.obj
+[36/121] Building C object esp-idf/esp_system/CMakeFiles/__idf_esp_system.dir/port/cpu_start.c.obj
+[37/121] Building C object esp-idf/pthread/CMakeFiles/__idf_pthread.dir/pthread_rwlock.c.obj
+[38/121] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/Users/oscariglesias/esp/esp-idf/components/mbedtls/port/esp_platform_time.c.obj
+[39/121] Building C object esp-idf/pthread/CMakeFiles/__idf_pthread.dir/pthread.c.obj
+[40/121] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/Users/oscariglesias/esp/esp-idf/components/mbedtls/port/mbedtls_debug.c.obj
+[41/121] Building C object esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/flash_mmap.c.obj
+[42/121] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/ssl_client.c.obj
+[43/121] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/memory_buffer_alloc.c.obj
+[44/121] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/dhm.c.obj
+[45/121] Building C object esp-idf/app_update/CMakeFiles/__idf_app_update.dir/esp_ota_ops.c.obj
+[46/121] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/cipher_wrap.c.obj
+[47/121] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_client.c.obj
+[48/121] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_pake.c.obj
+[49/121] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/md.c.obj
+[50/121] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/Users/oscariglesias/esp/esp-idf/components/mbedtls/port/esp_hardware.c.obj
+[51/121] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_cipher.c.obj
+[52/121] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_storage.c.obj
+[53/121] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/Users/oscariglesias/esp/esp-idf/components/mbedtls/port/sha/esp_sha.c.obj
+[54/121] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/Users/oscariglesias/esp/esp-idf/components/mbedtls/port/esp_ds/esp_rsa_sign_alt.c.obj
+[55/121] Building CXX object esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_partition_manager.cpp.obj
+[56/121] Building CXX object esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_api.cpp.obj
+[57/121] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/psa_crypto.c.obj
+[58/121] Performing build step for 'bootloader'
+[1/1] cd /Users/oscariglesias/Documents/Arduino/Camara/build/bootloader/esp-idf/esptool_py && /Users/oscariglesias/.espressif/python_env/idf5.2_py3.9_env/bin/python /Users/oscariglesias/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 /Users/oscariglesias/Documents/Arduino/Camara/build/bootloader/bootloader.bin
+Bootloader binary size 0x5250 bytes. 0x2db0 bytes (36%) free.
+[59/121] No install step for 'bootloader'
+[60/121] Completed 'bootloader'
+[61/121] Linking C static library esp-idf/esp_http_server/libesp_http_server.a
+[62/121] Linking C static library esp-idf/esp_adc/libesp_adc.a
+[63/121] Linking C static library esp-idf/esp-tls/libesp-tls.a
+[64/121] Linking C static library esp-idf/wpa_supplicant/libwpa_supplicant.a
+[65/121] Linking C static library esp-idf/lwip/liblwip.a
+[66/121] Linking C static library esp-idf/nvs_flash/libnvs_flash.a
+[67/121] Linking C static library esp-idf/newlib/libnewlib.a
+[68/121] Linking C static library esp-idf/freertos/libfreertos.a
+[69/121] Linking C static library esp-idf/soc/libsoc.a
+[70/121] Linking C static library esp-idf/heap/libheap.a
+[71/121] Linking C static library esp-idf/esp_rom/libesp_rom.a
+[72/121] Linking C static library esp-idf/esp_system/libesp_system.a
+[73/121] Linking C static library esp-idf/pthread/libpthread.a
+[74/121] Linking C static library esp-idf/spi_flash/libspi_flash.a
+[75/121] Linking C static library esp-idf/app_update/libapp_update.a
+[76/121] Linking CXX static library esp-idf/mbedtls/mbedtls/library/libmbedtls.a
+[77/121] Linking CXX static library esp-idf/mbedtls/mbedtls/library/libmbedcrypto.a
+[78/121] Building C object esp-idf/bt/CMakeFiles/__idf_bt.dir/host/nimble/nimble/nimble/host/services/hid/src/ble_svc_hid.c.obj
+[79/121] Building C object esp-idf/bt/CMakeFiles/__idf_bt.dir/common/api/esp_blufi_api.c.obj
+[80/121] Building C object esp-idf/efuse/CMakeFiles/__idf_efuse.dir/esp32s3/esp_efuse_rtc_calib.c.obj
+[81/121] Building C object esp-idf/bt/CMakeFiles/__idf_bt.dir/common/btc/profile/esp/blufi/blufi_prf.c.obj
+[82/121] Building C object esp-idf/bt/CMakeFiles/__idf_bt.dir/host/nimble/nimble/nimble/host/src/ble_l2cap_coc.c.obj
+[83/121] Building C object esp-idf/bt/CMakeFiles/__idf_bt.dir/host/nimble/nimble/nimble/host/services/lls/src/ble_svc_lls.c.obj
+[84/121] Building C object esp-idf/sdmmc/CMakeFiles/__idf_sdmmc.dir/sdmmc_init.c.obj
+[85/121] Building C object esp-idf/bt/CMakeFiles/__idf_bt.dir/host/nimble/nimble/nimble/host/src/ble_hs_resolv.c.obj
+[86/121] Building C object esp-idf/bt/CMakeFiles/__idf_bt.dir/host/nimble/nimble/nimble/host/src/ble_store.c.obj
+[87/121] Linking C static library esp-idf/efuse/libefuse.a
+[88/121] Building C object esp-idf/bt/CMakeFiles/__idf_bt.dir/host/nimble/nimble/nimble/host/src/ble_hs.c.obj
+[89/121] Building C object esp-idf/bt/CMakeFiles/__idf_bt.dir/host/nimble/nimble/nimble/host/src/ble_hs_log.c.obj
+[90/121] Building C object esp-idf/console/CMakeFiles/__idf_console.dir/argtable3/arg_end.c.obj
+[91/121] Building C object esp-idf/sdmmc/CMakeFiles/__idf_sdmmc.dir/sdmmc_cmd.c.obj
+[92/121] Building C object esp-idf/esp_lcd/CMakeFiles/__idf_esp_lcd.dir/src/esp_lcd_panel_io.c.obj
+[93/121] Building C object esp-idf/bt/CMakeFiles/__idf_bt.dir/host/nimble/nimble/nimble/host/src/ble_hs_flow.c.obj
+[94/121] Building C object esp-idf/esp_lcd/CMakeFiles/__idf_esp_lcd.dir/src/esp_lcd_common.c.obj
+[95/121] Building C object esp-idf/bt/CMakeFiles/__idf_bt.dir/host/nimble/nimble/porting/npl/freertos/src/nimble_port_freertos.c.obj
+[96/121] Building C object esp-idf/bt/CMakeFiles/__idf_bt.dir/host/nimble/nimble/nimble/host/store/ram/src/ble_store_ram.c.obj
+[97/121] Building C object esp-idf/esp_lcd/CMakeFiles/__idf_esp_lcd.dir/src/esp_lcd_panel_io_i2c_v1.c.obj
+[98/121] Building C object esp-idf/esp_local_ctrl/CMakeFiles/__idf_esp_local_ctrl.dir/src/esp_local_ctrl_handler.c.obj
+[99/121] Building C object esp-idf/usb/CMakeFiles/__idf_usb.dir/hub.c.obj
+[100/121] Building C object esp-idf/usb/CMakeFiles/__idf_usb.dir/usb_phy.c.obj
+[101/121] Building C object esp-idf/esp_lcd/CMakeFiles/__idf_esp_lcd.dir/src/esp_lcd_panel_rgb.c.obj
+[102/121] Linking C static library esp-idf/esp_lcd/libesp_lcd.a
+[103/121] Linking C static library esp-idf/sdmmc/libsdmmc.a
+[104/121] Linking C static library esp-idf/usb/libusb.a
+[105/121] Linking C static library esp-idf/console/libconsole.a
+[106/121] Linking C static library esp-idf/bt/libbt.a
+[107/121] Generating ../../styles.css.S
+[108/121] Generating ../../app.js.S
+[109/121] Generating ../../index.html.S
+[110/121] Building ASM object esp-idf/main/CMakeFiles/__idf_main.dir/__/__/index.html.S.obj
+[111/121] Building ASM object esp-idf/main/CMakeFiles/__idf_main.dir/__/__/styles.css.S.obj
+[112/121] Building ASM object esp-idf/main/CMakeFiles/__idf_main.dir/__/__/app.js.S.obj
+[113/121] Linking C static library esp-idf/esp_local_ctrl/libesp_local_ctrl.a
+[114/121] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/wifi_ap.cpp.obj
+[115/121] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/http_server.cpp.obj
+[116/121] Linking C static library esp-idf/main/libmain.a
+[117/121] Generating ld/sections.ld
+[118/121] Linking CXX executable CamaraESP32.elf
+[119/121] Generating binary image from built executable
+esptool.py v4.11.0
+Creating esp32s3 image...
+Merged 2 ELF sections
+Successfully created esp32s3 image.
+Generated /Users/oscariglesias/Documents/Arduino/Camara/build/CamaraESP32.bin
+[120/121] cd /Users/oscariglesias/Documents/Arduino/Camara/build/esp-idf/esptool_py && /Users/oscariglesias/.espressif/python_env/idf5.2_py3.9_env/bin/python /Users/oscariglesias/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app /Users/oscariglesias/Documents/Arduino/Camara/build/partition_table/partition-table.bin /Users/oscariglesias/Documents/Arduino/Camara/build/CamaraESP32.bin
+CamaraESP32.bin binary size 0x10f130 bytes. Smallest app partition is 0x300000 bytes. 0x1f0ed0 bytes (65%) free.
+[120/121] cd /Users/oscariglesias/esp/esp-idf/components/esptool_py && /opt/homebrew/bin/cmake -D IDF_PATH=/Users/oscariglesias/esp/esp-idf -D "SERIAL_TOOL=/Users/oscariglesias/.espressif/python_env/idf5.2_py3.9_env/bin/python;;/Users/oscariglesias/esp/esp-idf/components/esptool_py/esptool/esptool.py;--chip;esp32s3" -D "SERIAL_TOOL_ARGS=--before=default_reset;--after=hard_reset;write_flash;@flash_args" -D WORKING_DIRECTORY=/Users/oscariglesias/Documents/Arduino/Camara/build -P /Users/oscariglesias/esp/esp-idf/components/esptool_py/run_serial_tool.cmake
+esptool.py --chip esp32s3 -p /dev/cu.usbmodem23201 -b 460800 --before=default_reset --after=hard_reset write_flash --flash_mode dio --flash_freq 80m --flash_size 8MB 0x0 bootloader/bootloader.bin 0x10000 CamaraESP32.bin 0x8000 partition_table/partition-table.bin
+esptool.py v4.11.0
+Serial port /dev/cu.usbmodem23201
+Connecting...
+Chip is ESP32-S3 (QFN56) (revision v0.2)
+Features: WiFi, BLE, Embedded PSRAM 8MB (AP_3v3)
+Crystal is 40MHz
+USB mode: USB-Serial/JTAG
+MAC: e0:72:a1:fb:eb:f4
+Uploading stub...
+Running stub...
+Stub running...
+Changing baud rate to 460800
+Changed.
+Configuring flash size...
+Flash will be erased from 0x00000000 to 0x00005fff...
+Flash will be erased from 0x00010000 to 0x0011ffff...
+Flash will be erased from 0x00008000 to 0x00008fff...
+SHA digest in image updated
+Compressed 21072 bytes to 13062...
+Writing at 0x00000000... (100 %)
+Wrote 21072 bytes (13062 compressed) at 0x00000000 in 0.3 seconds (effective 482.3 kbit/s)...
+Hash of data verified.
+Compressed 1110320 bytes to 660455...
+Writing at 0x00010000... (2 %)
+Writing at 0x0001dd13... (4 %)
+Writing at 0x0002b8c5... (7 %)
+Writing at 0x00036611... (9 %)
+Writing at 0x0003ce31... (12 %)
+Writing at 0x000423c2... (14 %)
+Writing at 0x0004e53f... (17 %)
+Writing at 0x00054e49... (19 %)
+Writing at 0x0005b30d... (21 %)
+Writing at 0x00061062... (24 %)
+Writing at 0x0006705e... (26 %)
+Writing at 0x0006db58... (29 %)
+Writing at 0x0007546d... (31 %)
+Writing at 0x0007bd37... (34 %)
+Writing at 0x00081faf... (36 %)
+Writing at 0x000879ca... (39 %)
+Writing at 0x0008d6ae... (41 %)
+Writing at 0x00093250... (43 %)
+Writing at 0x00098fbb... (46 %)
+Writing at 0x0009ef5c... (48 %)
+Writing at 0x000a5565... (51 %)
+Writing at 0x000ab015... (53 %)
+Writing at 0x000b03e5... (56 %)
+Writing at 0x000b5358... (58 %)
+Writing at 0x000ba44b... (60 %)
+Writing at 0x000bf49c... (63 %)
+Writing at 0x000c47a2... (65 %)
+Writing at 0x000c9cad... (68 %)
+Writing at 0x000cf9c3... (70 %)
+Writing at 0x000d511b... (73 %)
+Writing at 0x000dae0a... (75 %)
+Writing at 0x000e13fb... (78 %)
+Writing at 0x000e6a37... (80 %)
+Writing at 0x000ec89f... (82 %)
+Writing at 0x000f680a... (85 %)
+Writing at 0x000fe109... (87 %)
+Writing at 0x0010500d... (90 %)
+Writing at 0x0010afa7... (92 %)
+Writing at 0x001111d0... (95 %)
+Writing at 0x00117c8a... (97 %)
+Writing at 0x0011cef1... (100 %)
+Wrote 1110320 bytes (660455 compressed) at 0x00010000 in 7.0 seconds (effective 1264.6 kbit/s)...
+Hash of data verified.
+Compressed 3072 bytes to 136...
+Writing at 0x00008000... (100 %)
+Wrote 3072 bytes (136 compressed) at 0x00008000 in 0.0 seconds (effective 551.5 kbit/s)...
+Hash of data verified.
+
+Leaving...
+Hard resetting via RTS pin...

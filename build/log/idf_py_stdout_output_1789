@@ -1,0 +1,75 @@
+[1/67] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/dh_group5.c.obj
+[2/67] Building C object esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/err.c.obj
+[3/67] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha1-prf.c.obj
+[4/67] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/port/os_xtensa.c.obj
+[5/67] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_tls.c.obj
+[6/67] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/pmksa_cache_auth.c.obj
+[7/67] Building C object esp-idf/newlib/CMakeFiles/__idf_newlib.dir/assert.c.obj
+[8/67] Building C object esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/demand.c.obj
+[9/67] Building C object esp-idf/newlib/CMakeFiles/__idf_newlib.dir/termios.c.obj
+[10/67] Building C object esp-idf/esp_http_server/CMakeFiles/__idf_esp_http_server.dir/src/httpd_txrx.c.obj
+[11/67] Building C object esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/ping/ping.c.obj
+[12/67] Building CXX object esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_platform.cpp.obj
+[13/67] Building C object esp-idf/soc/CMakeFiles/__idf_soc.dir/lldesc.c.obj
+[14/67] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/crypto/tls_mbedtls.c.obj
+[15/67] Building C object esp-idf/esp-tls/CMakeFiles/__idf_esp-tls.dir/esp_tls_mbedtls.c.obj
+[16/67] Building C object esp-idf/freertos/CMakeFiles/__idf_freertos.dir/FreeRTOS-Kernel/timers.c.obj
+[17/67] Building C object esp-idf/heap/CMakeFiles/__idf_heap.dir/port/memory_layout_utils.c.obj
+[18/67] Linking C static library esp-idf/esp_http_server/libesp_http_server.a
+[19/67] Building C object esp-idf/esp_system/CMakeFiles/__idf_esp_system.dir/task_wdt/task_wdt_impl_timergroup.c.obj
+[20/67] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/dhm.c.obj
+[21/67] Building C object esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/tcp_out.c.obj
+[22/67] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/memory_buffer_alloc.c.obj
+[23/67] Linking C static library esp-idf/esp-tls/libesp-tls.a
+[24/67] Building C object esp-idf/esp_system/CMakeFiles/__idf_esp_system.dir/port/esp_ipc_isr.c.obj
+[25/67] Building C object esp-idf/pthread/CMakeFiles/__idf_pthread.dir/pthread_rwlock.c.obj
+[26/67] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/cipher_wrap.c.obj
+[27/67] Building C object esp-idf/esp_system/CMakeFiles/__idf_esp_system.dir/port/cpu_start.c.obj
+[28/67] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_pake.c.obj
+[29/67] Building C object esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/rsn_supp/wpa.c.obj
+[30/67] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/ssl_client.c.obj
+[31/67] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/psa_crypto.c.obj
+[32/67] Performing build step for 'bootloader'
+[1/1] cd /Users/oscariglesias/Documents/Arduino/Camara/build/bootloader/esp-idf/esptool_py && /Users/oscariglesias/.espressif/python_env/idf5.2_py3.9_env/bin/python /Users/oscariglesias/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 /Users/oscariglesias/Documents/Arduino/Camara/build/bootloader/bootloader.bin
+Bootloader binary size 0x5250 bytes. 0x2db0 bytes (36%) free.
+[33/67] No install step for 'bootloader'
+[34/67] Completed 'bootloader'
+[35/67] Linking C static library esp-idf/wpa_supplicant/libwpa_supplicant.a
+[36/67] Linking C static library esp-idf/lwip/liblwip.a
+[37/67] Linking C static library esp-idf/nvs_flash/libnvs_flash.a
+[38/67] Linking C static library esp-idf/newlib/libnewlib.a
+[39/67] Linking C static library esp-idf/freertos/libfreertos.a
+[40/67] Linking C static library esp-idf/soc/libsoc.a
+[41/67] Linking C static library esp-idf/heap/libheap.a
+[42/67] Linking C static library esp-idf/esp_system/libesp_system.a
+[43/67] Linking C static library esp-idf/pthread/libpthread.a
+[44/67] Linking CXX static library esp-idf/mbedtls/mbedtls/library/libmbedtls.a
+[45/67] Linking CXX static library esp-idf/mbedtls/mbedtls/library/libmbedcrypto.a
+[46/67] Building C object esp-idf/bt/CMakeFiles/__idf_bt.dir/host/nimble/nimble/nimble/host/services/hid/src/ble_svc_hid.c.obj
+[47/67] Building C object esp-idf/bt/CMakeFiles/__idf_bt.dir/common/api/esp_blufi_api.c.obj
+[48/67] Building C object esp-idf/esp_lcd/CMakeFiles/__idf_esp_lcd.dir/src/esp_lcd_common.c.obj
+[49/67] Building C object esp-idf/bt/CMakeFiles/__idf_bt.dir/host/nimble/nimble/nimble/host/src/ble_l2cap_coc.c.obj
+[50/67] Building C object esp-idf/sdmmc/CMakeFiles/__idf_sdmmc.dir/sdmmc_init.c.obj
+[51/67] Building C object esp-idf/bt/CMakeFiles/__idf_bt.dir/host/nimble/nimble/nimble/host/src/ble_hs_flow.c.obj
+[52/67] Building C object esp-idf/usb/CMakeFiles/__idf_usb.dir/hub.c.obj
+[53/67] Linking C static library esp-idf/usb/libusb.a
+[54/67] Linking C static library esp-idf/sdmmc/libsdmmc.a
+[55/67] Linking C static library esp-idf/esp_lcd/libesp_lcd.a
+[56/67] Linking C static library esp-idf/bt/libbt.a
+[57/67] Generating ../../app.js.S
+[58/67] Generating ../../index.html.S
+[59/67] Generating ../../styles.css.S
+[60/67] Building ASM object esp-idf/main/CMakeFiles/__idf_main.dir/__/__/index.html.S.obj
+[61/67] Building ASM object esp-idf/main/CMakeFiles/__idf_main.dir/__/__/styles.css.S.obj
+[62/67] Building ASM object esp-idf/main/CMakeFiles/__idf_main.dir/__/__/app.js.S.obj
+[63/67] Linking C static library esp-idf/main/libmain.a
+[64/67] Generating ld/sections.ld
+[65/67] Linking CXX executable CamaraESP32.elf
+[66/67] Generating binary image from built executable
+esptool.py v4.11.0
+Creating esp32s3 image...
+Merged 2 ELF sections
+Successfully created esp32s3 image.
+Generated /Users/oscariglesias/Documents/Arduino/Camara/build/CamaraESP32.bin
+[67/67] cd /Users/oscariglesias/Documents/Arduino/Camara/build/esp-idf/esptool_py && /Users/oscariglesias/.espressif/python_env/idf5.2_py3.9_env/bin/python /Users/oscariglesias/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app /Users/oscariglesias/Documents/Arduino/Camara/build/partition_table/partition-table.bin /Users/oscariglesias/Documents/Arduino/Camara/build/CamaraESP32.bin
+CamaraESP32.bin binary size 0x116a10 bytes. Smallest app partition is 0x300000 bytes. 0x1e95f0 bytes (64%) free.

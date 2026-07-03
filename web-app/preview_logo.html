@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Preview Logo Raboseta</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 60px;
+            padding: 40px;
+            background: #1a1a1a;
+            color: white;
+            font-family: sans-serif;
+        }
+        .card {
+            text-align: center;
+            background: black;
+            padding: 40px;
+            border-radius: 16px;
+            border: 1px solid #333;
+        }
+        .card h3 {
+            margin-bottom: 20px;
+            color: #b87333;
+        }
+        .splash-title {
+            margin-top: 2rem;
+            color: #b87333;
+            font-size: 2.5rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- MI SVG TRAZADO -->
+    <div class="card">
+        <h3>SVG Trazado</h3>
+        <svg viewBox="0 0 100 100" width="200" height="200" fill="none" stroke="white" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+            <!-- Contorno exterior -->
+            <polygon points="20,6 37,37 49,22 56,33 68,4 70,42 72,70 83,78 76,86 64,79 24,88 15,67 28,49"/>
+            <!-- V de la cara -->
+            <line x1="37" y1="37" x2="37" y2="57"/>
+            <line x1="56" y1="33" x2="37" y2="57"/>
+            <!-- Línea pecho-cuerpo -->
+            <line x1="28" y1="49" x2="37" y2="57"/>
+            <line x1="37" y1="57" x2="70" y2="42"/>
+        </svg>
+        <div class="splash-title">Raboseta Cam</div>
+    </div>
+
+    <!-- SIMULACIÓN SPLASH COMPLETO -->
+    <div class="card">
+        <h3>Vista Splash Completa</h3>
+        <div style="background: black; width: 375px; height: 667px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 12px; border: 2px solid #333;">
+            <svg viewBox="0 0 100 100" width="140" height="140" fill="none" stroke="white" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+                <polygon points="20,6 37,37 49,22 56,33 68,4 70,42 72,70 83,78 76,86 64,79 24,88 15,67 28,49"/>
+                <line x1="37" y1="37" x2="37" y2="57"/>
+                <line x1="56" y1="33" x2="37" y2="57"/>
+                <line x1="28" y1="49" x2="37" y2="57"/>
+                <line x1="37" y1="57" x2="70" y2="42"/>
+            </svg>
+            <div style="margin-top: 2rem; color: #b87333; font-size: 2rem; font-weight: 600; letter-spacing: 2px;">Raboseta Cam</div>
+        </div>
+    </div>
+</body>
+</html>

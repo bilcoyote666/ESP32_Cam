@@ -101,6 +101,24 @@ esp_err_t sd_storage_init(void) {
             ESP_LOGE(TAG, "Error creando DCIM: %s", strerror(errno));
         }
     }
+    // Sincronizar contador de fotos para no sobreescribir al reiniciar
+    DIR* dir = opendir(SD_DCIM_DIR);
+    if (dir) {
+        struct dirent* entry;
+        uint32_t max_num = 0;
+        size_t prefix_len = strlen(SD_FILENAME_PREFIX);
+        while ((entry = readdir(dir)) != NULL) {
+            if (entry->d_type != DT_DIR && strncmp(entry->d_name, SD_FILENAME_PREFIX, prefix_len) == 0) {
+                if (entry->d_name[prefix_len] == '_') {
+                    uint32_t num = atoi(entry->d_name + prefix_len + 1);
+                    if (num > max_num) max_num = num;
+                }
+            }
+        }
+        closedir(dir);
+        s_photo_counter = max_num;
+        ESP_LOGI(TAG, "Contador de fotos sincronizado en %lu", s_photo_counter);
+    }
 
     s_mounted = true;
     ESP_LOGI(TAG, "MicroSD montada correctamente en %s", SD_MOUNT_POINT);
@@ -120,24 +138,10 @@ esp_err_t sd_save_photo(const uint8_t* jpeg_data, size_t jpeg_size, char* out_fi
 
     xSemaphoreTake(s_sd_mutex, portMAX_DELAY);
 
-    // Generar nombre con timestamp
-    time_t now = 0;
-    struct tm timeinfo = {};
-    time(&now);
-    localtime_r(&now, &timeinfo);
-
+    // Generar nombre secuencial simple
     char filename[SD_MAX_FILENAME_LEN];
     s_photo_counter++;
-    snprintf(filename, sizeof(filename),
-             "%s_%04d%02d%02d_%02d%02d%02d_%03lu.jpg",
-             SD_FILENAME_PREFIX,
-             timeinfo.tm_year + 1900,
-             timeinfo.tm_mon + 1,
-             timeinfo.tm_mday,
-             timeinfo.tm_hour,
-             timeinfo.tm_min,
-             timeinfo.tm_sec,
-             s_photo_counter);
+    snprintf(filename, sizeof(filename), "%s_%02lu.jpg", SD_FILENAME_PREFIX, s_photo_counter);
 
     char full_path[128];
     snprintf(full_path, sizeof(full_path), "%s/%s", SD_DCIM_DIR, filename);

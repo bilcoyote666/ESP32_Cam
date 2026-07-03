@@ -113,6 +113,9 @@ esp_err_t wifi_ap_init(void) {
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
+    
+    // Desactivar el modo ahorro de energía del WiFi para evitar desconexiones con móviles bloqueados
+    esp_wifi_set_ps(WIFI_PS_NONE);
 
     ESP_LOGI(TAG, "WiFi AP iniciado. SSID: %s", WIFI_AP_SSID);
 

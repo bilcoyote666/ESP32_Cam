@@ -104,7 +104,7 @@
 #define SD_ALLOC_UNIT_SIZE   (16 * 1024)  // Tamaño de unidad de asignación
 
 // Nombre de archivo: FOTO_YYYYMMDD_HHMMSS_NNN.jpg
-#define SD_FILENAME_PREFIX   "FOTO"
+#define SD_FILENAME_PREFIX   "Foto"
 #define SD_MAX_FILENAME_LEN  64
 
 // =============================================================================

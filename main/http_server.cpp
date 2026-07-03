@@ -5,13 +5,14 @@
 #include "config.h"
 #include <sys/param.h>
 #include <sys/time.h>
+#include <sys/stat.h>
 #include "auth.h"
 
 // Helper para comprobar la autenticación
 static bool is_authenticated(httpd_req_t *req) {
     if (!auth_is_password_set()) return true; // Si no hay contraseña, acceso libre (para poder configurarla)
     
-    char cookie_header[128] = {0};
+    char cookie_header[512] = {0};
     if (httpd_req_get_hdr_value_str(req, "Cookie", cookie_header, sizeof(cookie_header)) == ESP_OK) {
         const char* expected_token = auth_get_session_token();
         // Buscamos si la cookie esperada está en el header
@@ -69,6 +70,7 @@ static esp_err_t captive_portal_handler(httpd_req_t *req) {
 static esp_err_t err_404_handler(httpd_req_t *req, httpd_err_code_t err) {
     httpd_resp_set_status(req, "302 Found");
     httpd_resp_set_hdr(req, "Location", "http://192.168.4.1/");
+    httpd_resp_set_hdr(req, "Connection", "close");
     httpd_resp_send(req, NULL, 0);
     return ESP_OK;
 }
@@ -190,30 +192,59 @@ static esp_err_t photo_get_handler(httpd_req_t *req) {
         return ESP_FAIL;
     }
 
-    FILE* f = sd_open_file(filename, "r");
+    FILE* f = sd_open_file(filename, "rb");
     if (!f) {
         httpd_resp_send_404(req);
         return ESP_FAIL;
     }
 
+    struct stat st;
+    char path[128];
+    snprintf(path, sizeof(path), "%s/%s", SD_DCIM_DIR, filename);
+
+    if (stat(path, &st) != 0) {
+        fclose(f);
+        httpd_resp_send_404(req);
+        return ESP_FAIL;
+    }
+
     httpd_resp_set_type(req, "image/jpeg");
-    httpd_resp_set_hdr(req, "Cache-Control", "public, max-age=3600"); // Las fotos sí se pueden cachear
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-cache");
+    httpd_resp_set_hdr(req, "Connection", "close");
+    httpd_resp_set_hdr(req, "Content-Disposition", "inline");
     
-    // Enviar el archivo en chunks
-    char chunk[1024];
+    char len[32];
+    snprintf(len, sizeof(len), "%ld", (long)st.st_size);
+    httpd_resp_set_hdr(req, "Content-Length", len);
+
+    ESP_LOGI(TAG, "Solicitada foto: %s", filename);
+    ESP_LOGI(TAG, "Abriendo y transmitiendo: %s (%ld bytes)", filename, (long)st.st_size);
+    
+    // Enviar el archivo en chunks de 8KB (reservado en el heap para evitar stack overflow)
+    char* chunk = (char*)malloc(8192);
+    if (!chunk) {
+        fclose(f);
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
     size_t read_bytes;
     do {
-        read_bytes = fread(chunk, 1, sizeof(chunk), f);
+        read_bytes = fread(chunk, 1, 8192, f);
         if (read_bytes > 0) {
+            // Cuando se establece Content-Length, send_chunk no añade formato chunked y envía los bytes puros
             if (httpd_resp_send_chunk(req, chunk, read_bytes) != ESP_OK) {
+                free(chunk);
                 fclose(f);
                 return ESP_FAIL;
             }
         }
-    } while (read_bytes == sizeof(chunk));
+    } while (read_bytes == 8192);
     
+    free(chunk);
     fclose(f);
-    // Finalizar el chunked transfer
+    // Finalizar el envío
     return httpd_resp_send_chunk(req, NULL, 0);
 }
 
@@ -225,6 +256,8 @@ esp_err_t http_server_start(void) {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     // Captive portal suele lanzar muchas peticiones simultáneas (Apple, Android...)
     config.max_open_sockets = 7;
+    // Permite purgar la conexión más antigua si se llenan los sockets, evitando el error 23 (ENFILE)
+    config.lru_purge_enable = true;
     // Capturamos cualquier error 404 para redirigir al portal cautivo
     config.uri_match_fn = httpd_uri_match_wildcard;
 
