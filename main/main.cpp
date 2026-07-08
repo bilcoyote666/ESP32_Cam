@@ -58,7 +58,7 @@ static SemaphoreHandle_t       s_capture_mutex = NULL;  // Mutex: solo 1 captura
 
 // Control de auto-disparo por detección de caras
 static volatile uint32_t s_last_face_capture_ms = 0;
-static volatile bool     s_face_auto_capture     = false;  // false = solo AF, no dispara auto
+static volatile bool     s_face_auto_capture     = true;   // Activado: dispara auto al detectar cara
 
 // =============================================================================
 // Actualización del estado del sistema
@@ -329,6 +329,8 @@ extern "C" void app_main(void) {
         ESP_LOGI(TAG, "[6/8] WiFi AP inicializado ✓");
         if (http_server_start() == ESP_OK) {
             ESP_LOGI(TAG, "[6/8] Servidor HTTP inicializado ✓");
+        } else {
+            ESP_LOGE(TAG, "[6/8] Fallo al iniciar el Servidor HTTP ❌");
         }
     } else {
         ESP_LOGW(TAG, "[6/8] WiFi no disponible: %s", esp_err_to_name(err));

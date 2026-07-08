@@ -1,306 +1,308 @@
 #include "http_server.h"
-#include "esp_http_server.h"
-#include "esp_log.h"
-#include "sd_storage.h"
-#include "config.h"
-#include <sys/param.h>
+#include <esp_http_server.h>
+#include <esp_log.h>
+#include <string.h>
+#include <stdlib.h>
 #include <sys/time.h>
-#include <sys/stat.h>
+#include "sd_storage.h"
 #include "auth.h"
+#include <sys/param.h>
 
-// Helper para comprobar la autenticación
+static const char *TAG = "HTTP";
+
+// Referencias a los archivos embebidos (generados por target_add_binary_data)
+extern const uint8_t index_html_start[] asm("_binary_index_html_start");
+extern const uint8_t index_html_end[]   asm("_binary_index_html_end");
+
+extern const uint8_t styles_css_start[] asm("_binary_styles_css_start");
+extern const uint8_t styles_css_end[]   asm("_binary_styles_css_end");
+
+extern const uint8_t app_js_start[]     asm("_binary_app_js_start");
+extern const uint8_t app_js_end[]       asm("_binary_app_js_end");
+
+// ============================================================================
+// FUNCIONES AUXILIARES
+// ============================================================================
+
+/**
+ * @brief Comprueba si la petición contiene una cookie de sesión válida
+ */
 static bool is_authenticated(httpd_req_t *req) {
-    if (!auth_is_password_set()) return true; // Si no hay contraseña, acceso libre (para poder configurarla)
+    if (!auth_is_password_set()) {
+        return false; // No hay contraseña configurada
+    }
     
-    char cookie_header[512] = {0};
-    if (httpd_req_get_hdr_value_str(req, "Cookie", cookie_header, sizeof(cookie_header)) == ESP_OK) {
-        const char* expected_token = auth_get_session_token();
-        // Buscamos si la cookie esperada está en el header
-        char expected_cookie[64];
-        snprintf(expected_cookie, sizeof(expected_cookie), "%s=%s", AUTH_SESSION_COOKIE_NAME, expected_token);
-        if (strstr(cookie_header, expected_cookie) != NULL) {
-            return true;
+    char cookie_hdr[256];
+    if (httpd_req_get_hdr_value_str(req, "Cookie", cookie_hdr, sizeof(cookie_hdr)) == ESP_OK) {
+        // Buscar "cam_session="
+        char *session = strstr(cookie_hdr, AUTH_SESSION_COOKIE_NAME "=");
+        if (session) {
+            session += strlen(AUTH_SESSION_COOKIE_NAME "=");
+            // El token llega hasta el final, o hasta el punto y coma
+            char token[64] = {0};
+            int i = 0;
+            while (session[i] != '\0' && session[i] != ';' && i < sizeof(token) - 1) {
+                token[i] = session[i];
+                i++;
+            }
+            token[i] = '\0';
+            
+            return auth_verify_session(token);
         }
     }
     return false;
 }
 
-
-static const char *TAG = "HTTP_SERVER";
-
-// Archivos embebidos generados por CMake
-extern const uint8_t index_html_start[] asm("_binary_index_html_start");
-extern const uint8_t index_html_end[]   asm("_binary_index_html_end");
-extern const uint8_t styles_css_start[] asm("_binary_styles_css_start");
-extern const uint8_t styles_css_end[]   asm("_binary_styles_css_end");
-extern const uint8_t app_js_start[]     asm("_binary_app_js_start");
-extern const uint8_t app_js_end[]       asm("_binary_app_js_end");
-
 // ============================================================================
-// Rutas de Archivos Estáticos (Frontend)
+// HANDLERS ESTATICOS
 // ============================================================================
 
-static esp_err_t index_html_get_handler(httpd_req_t *req) {
+static esp_err_t index_get_handler(httpd_req_t *req) {
+    ESP_LOGI(TAG, "GET /");
     httpd_resp_set_type(req, "text/html");
     const size_t len = index_html_end - index_html_start;
-    return httpd_resp_send(req, (const char *)index_html_start, len);
+    httpd_resp_send(req, (const char *)index_html_start, len);
+    return ESP_OK;
 }
 
-static esp_err_t styles_css_get_handler(httpd_req_t *req) {
+static esp_err_t styles_get_handler(httpd_req_t *req) {
     httpd_resp_set_type(req, "text/css");
     const size_t len = styles_css_end - styles_css_start;
-    return httpd_resp_send(req, (const char *)styles_css_start, len);
+    httpd_resp_send(req, (const char *)styles_css_start, len);
+    return ESP_OK;
 }
 
 static esp_err_t app_js_get_handler(httpd_req_t *req) {
     httpd_resp_set_type(req, "application/javascript");
     const size_t len = app_js_end - app_js_start;
-    return httpd_resp_send(req, (const char *)app_js_start, len);
-}
-
-// ============================================================================
-// Rutas Captive Portal (Redirecciones a /)
-// ============================================================================
-static esp_err_t captive_portal_handler(httpd_req_t *req) {
-    httpd_resp_set_status(req, "302 Found");
-    httpd_resp_set_hdr(req, "Location", "http://192.168.4.1/");
-    return httpd_resp_send(req, NULL, 0);
-}
-
-static esp_err_t err_404_handler(httpd_req_t *req, httpd_err_code_t err) {
-    httpd_resp_set_status(req, "302 Found");
-    httpd_resp_set_hdr(req, "Location", "http://192.168.4.1/");
-    httpd_resp_set_hdr(req, "Connection", "close");
-    httpd_resp_send(req, NULL, 0);
+    httpd_resp_send(req, (const char *)app_js_start, len);
     return ESP_OK;
 }
 
 // ============================================================================
-// Rutas de Autenticación y Sistema
+// HANDLERS DE LA API Y FOTOS
 // ============================================================================
 
-static esp_err_t api_time_post_handler(httpd_req_t *req) {
-    char buf[32] = {0};
-    int ret = httpd_req_recv(req, buf, MIN(req->content_len, sizeof(buf) - 1));
-    if (ret > 0) {
-        long timestamp = atol(buf);
-        if (timestamp > 0) {
-            struct timeval tv = { .tv_sec = timestamp, .tv_usec = 0 };
-            settimeofday(&tv, NULL);
-            ESP_LOGI(TAG, "Hora sincronizada con el cliente: %ld", timestamp);
-        }
-    }
-    httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
-    return ESP_OK;
-}
-
-static esp_err_t api_status_get_handler(httpd_req_t *req) {
-    bool has_pwd = auth_is_password_set();
-    bool is_auth = is_authenticated(req);
-    char json[128];
-    snprintf(json, sizeof(json), "{\"pwd_set\":%s,\"auth\":%s}", 
-             has_pwd ? "true" : "false", 
-             is_auth ? "true" : "false");
+static esp_err_t status_get_handler(httpd_req_t *req) {
     httpd_resp_set_type(req, "application/json");
-    return httpd_resp_send(req, json, HTTPD_RESP_USE_STRLEN);
+    
+    bool pwd_set = auth_is_password_set();
+    bool auth = pwd_set ? is_authenticated(req) : false;
+    
+    char resp[100];
+    snprintf(resp, sizeof(resp), "{\"pwd_set\": %s, \"auth\": %s}", 
+             pwd_set ? "true" : "false", 
+             auth ? "true" : "false");
+             
+    httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
 }
 
-static esp_err_t api_setup_post_handler(httpd_req_t *req) {
+static esp_err_t setup_post_handler(httpd_req_t *req) {
     if (auth_is_password_set()) {
-        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Password already set");
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Ya configurado");
         return ESP_FAIL;
     }
     
-    char pwd[AUTH_MAX_PASSWORD_LEN] = {0};
+    char pwd[65] = {0};
     int ret = httpd_req_recv(req, pwd, MIN(req->content_len, sizeof(pwd) - 1));
     if (ret <= 0) {
-        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "No password provided");
+        if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
+            httpd_resp_send_408(req);
+        }
         return ESP_FAIL;
     }
     
     if (auth_set_password(pwd) == ESP_OK) {
-        httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
+        // Enviar la cookie
+        char cookie_str[128];
+        snprintf(cookie_str, sizeof(cookie_str), "%s=%s; Path=/; HttpOnly", AUTH_SESSION_COOKIE_NAME, auth_get_session_token());
+        httpd_resp_set_hdr(req, "Set-Cookie", cookie_str);
+        httpd_resp_send(req, "{\"ok\":true}", HTTPD_RESP_USE_STRLEN);
         return ESP_OK;
     }
+    
     httpd_resp_send_500(req);
     return ESP_FAIL;
 }
 
-static esp_err_t api_login_post_handler(httpd_req_t *req) {
-    char pwd[AUTH_MAX_PASSWORD_LEN] = {0};
+static esp_err_t login_post_handler(httpd_req_t *req) {
+    if (!auth_is_password_set()) {
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "No hay pass");
+        return ESP_FAIL;
+    }
+    
+    char pwd[65] = {0};
     int ret = httpd_req_recv(req, pwd, MIN(req->content_len, sizeof(pwd) - 1));
     if (ret <= 0) {
-        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "No password provided");
+        if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
+            httpd_resp_send_408(req);
+        }
         return ESP_FAIL;
     }
     
     if (auth_verify_password(pwd)) {
-        // Establecer cookie
-        char cookie_header[128];
-        snprintf(cookie_header, sizeof(cookie_header), "%s=%s; Path=/; HttpOnly", 
-                 AUTH_SESSION_COOKIE_NAME, auth_get_session_token());
-        httpd_resp_set_hdr(req, "Set-Cookie", cookie_header);
-        httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
+        char cookie_str[128];
+        snprintf(cookie_str, sizeof(cookie_str), "%s=%s; Path=/; HttpOnly", AUTH_SESSION_COOKIE_NAME, auth_get_session_token());
+        httpd_resp_set_hdr(req, "Set-Cookie", cookie_str);
+        httpd_resp_send(req, "{\"ok\":true}", HTTPD_RESP_USE_STRLEN);
         return ESP_OK;
     }
     
-    httpd_resp_send_err(req, HTTPD_401_UNAUTHORIZED, "Invalid password");
+    httpd_resp_send_err(req, HTTPD_401_UNAUTHORIZED, "Unauthorized");
     return ESP_FAIL;
 }
 
-
-// ============================================================================
-// Rutas de la API (SD Card)
-// ============================================================================
-
 static esp_err_t list_get_handler(httpd_req_t *req) {
     if (!is_authenticated(req)) {
-        httpd_resp_set_status(req, "401 Unauthorized");
-        return httpd_resp_send(req, "{\"error\":\"Unauthorized\"}", HTTPD_RESP_USE_STRLEN);
+        httpd_resp_send_err(req, HTTPD_401_UNAUTHORIZED, "No Autorizado");
+        return ESP_FAIL;
     }
-    char* json = sd_list_files_json();
-    if (!json) {
-        httpd_resp_set_status(req, "500 Internal Server Error");
-        return httpd_resp_send(req, "{\"error\":\"Error reading SD\"}", HTTPD_RESP_USE_STRLEN);
-    }
-    httpd_resp_set_type(req, "application/json");
-    httpd_resp_set_hdr(req, "Cache-Control", "no-cache, no-store, must-revalidate");
-    httpd_resp_set_hdr(req, "Pragma", "no-cache");
-    httpd_resp_set_hdr(req, "Expires", "0");
     
-    esp_err_t res = httpd_resp_send(req, json, HTTPD_RESP_USE_STRLEN);
-    free(json);
-    return res;
+    ESP_LOGI(TAG, "GET /list");
+    httpd_resp_set_type(req, "application/json");
+    
+    char *json_response = sd_list_files_json();
+    if (json_response) {
+        httpd_resp_send(req, json_response, HTTPD_RESP_USE_STRLEN);
+        free(json_response);
+    } else {
+        httpd_resp_send_500(req);
+    }
+    
+    return ESP_OK;
 }
 
 static esp_err_t photo_get_handler(httpd_req_t *req) {
-    if (auth_is_password_set() && !is_authenticated(req)) {
-        httpd_resp_send_err(req, HTTPD_401_UNAUTHORIZED, "Unauthorized");
+    if (!is_authenticated(req)) {
+        httpd_resp_send_err(req, HTTPD_401_UNAUTHORIZED, "No Autorizado");
         return ESP_FAIL;
     }
-
-    char buf[128];
-    char filename[SD_MAX_FILENAME_LEN] = {0};
     
-    if (httpd_req_get_url_query_str(req, buf, sizeof(buf)) == ESP_OK) {
-        if (httpd_query_key_value(buf, "name", filename, sizeof(filename)) != ESP_OK) {
-            httpd_resp_send_404(req);
-            return ESP_FAIL;
-        }
-    } else {
-        httpd_resp_send_404(req);
+    char filename[128] = {0};
+    if (httpd_req_get_url_query_str(req, filename, sizeof(filename)) != ESP_OK) {
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Falta query string");
         return ESP_FAIL;
     }
-
-    FILE* f = sd_open_file(filename, "rb");
+    
+    char param[64] = {0};
+    if (httpd_query_key_value(filename, "name", param, sizeof(param)) != ESP_OK) {
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Falta parametro name");
+        return ESP_FAIL;
+    }
+    
+    ESP_LOGI(TAG, "GET /photo %s", param);
+    
+    FILE* f = sd_open_file(param, "r");
     if (!f) {
         httpd_resp_send_404(req);
         return ESP_FAIL;
     }
-
-    struct stat st;
-    char path[128];
-    snprintf(path, sizeof(path), "%s/%s", SD_DCIM_DIR, filename);
-
-    if (stat(path, &st) != 0) {
-        fclose(f);
-        httpd_resp_send_404(req);
-        return ESP_FAIL;
-    }
-
+    
     httpd_resp_set_type(req, "image/jpeg");
-    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
-    httpd_resp_set_hdr(req, "Cache-Control", "no-cache");
-    httpd_resp_set_hdr(req, "Connection", "close");
-    httpd_resp_set_hdr(req, "Content-Disposition", "inline");
     
-    char len[32];
-    snprintf(len, sizeof(len), "%ld", (long)st.st_size);
-    httpd_resp_set_hdr(req, "Content-Length", len);
+    // Chunked transfer
+    char chunk[8192];
+    size_t chunk_len = 0;
+    while ((chunk_len = fread(chunk, 1, sizeof(chunk), f)) > 0) {
+        if (httpd_resp_send_chunk(req, chunk, chunk_len) != ESP_OK) {
+            fclose(f);
+            ESP_LOGE(TAG, "Error enviando chunk");
+            httpd_resp_send_chunk(req, NULL, 0);
+            return ESP_FAIL;
+        }
+    }
+    fclose(f);
+    
+    // Finalize
+    httpd_resp_send_chunk(req, NULL, 0);
+    return ESP_OK;
+}
 
-    ESP_LOGI(TAG, "Solicitada foto: %s", filename);
-    ESP_LOGI(TAG, "Abriendo y transmitiendo: %s (%ld bytes)", filename, (long)st.st_size);
-    
-    // Enviar el archivo en chunks de 8KB (reservado en el heap para evitar stack overflow)
-    char* chunk = (char*)malloc(8192);
-    if (!chunk) {
-        fclose(f);
-        httpd_resp_send_500(req);
+static esp_err_t time_post_handler(httpd_req_t *req) {
+    char content[32];
+    int ret = httpd_req_recv(req, content, sizeof(content) - 1);
+    if (ret <= 0) {
+        if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
+            httpd_resp_send_408(req);
+        }
         return ESP_FAIL;
     }
-
-    size_t read_bytes;
-    do {
-        read_bytes = fread(chunk, 1, 8192, f);
-        if (read_bytes > 0) {
-            // Cuando se establece Content-Length, send_chunk no añade formato chunked y envía los bytes puros
-            if (httpd_resp_send_chunk(req, chunk, read_bytes) != ESP_OK) {
-                free(chunk);
-                fclose(f);
-                return ESP_FAIL;
-            }
-        }
-    } while (read_bytes == 8192);
+    content[ret] = '\0';
     
-    free(chunk);
-    fclose(f);
-    // Finalizar el envío
-    return httpd_resp_send_chunk(req, NULL, 0);
+    // Configurar la hora del sistema
+    long unsigned int ts = strtoul(content, NULL, 10);
+    if (ts > 0) {
+        struct timeval tv;
+        tv.tv_sec = ts;
+        tv.tv_usec = 0;
+        settimeofday(&tv, NULL);
+        ESP_LOGI(TAG, "Hora del sistema sincronizada via HTTP: %lu", ts);
+    }
+    
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_send(req, "{\"ok\":true}", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
 }
 
 // ============================================================================
-// Inicialización del Servidor
+// INICIALIZACION
 // ============================================================================
+
+// Handler para el Captive Portal (Redirigir todo lo no encontrado a la IP principal)
+static esp_err_t captive_portal_handler(httpd_req_t *req, httpd_err_code_t err) {
+    httpd_resp_set_status(req, "302 Found");
+    httpd_resp_set_hdr(req, "Location", "http://192.168.4.1/");
+    httpd_resp_send(req, NULL, 0);
+    return ESP_OK;
+}
 
 esp_err_t http_server_start(void) {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    // Captive portal suele lanzar muchas peticiones simultáneas (Apple, Android...)
     config.max_open_sockets = 7;
-    // Permite purgar la conexión más antigua si se llenan los sockets, evitando el error 23 (ENFILE)
     config.lru_purge_enable = true;
-    // Capturamos cualquier error 404 para redirigir al portal cautivo
     config.uri_match_fn = httpd_uri_match_wildcard;
+    config.max_uri_handlers = 12;
+
+    // Inicializar auth
+    auth_init();
 
     httpd_handle_t server = NULL;
     if (httpd_start(&server, &config) == ESP_OK) {
-        auth_init(); // Inicializar autenticación
+        ESP_LOGI(TAG, "Registrando Endpoints Web y API...");
 
-        // Estáticos
-        httpd_uri_t uri_index = { .uri = "/", .method = HTTP_GET, .handler = index_html_get_handler, .user_ctx = NULL };
-        httpd_uri_t uri_css   = { .uri = "/styles.css", .method = HTTP_GET, .handler = styles_css_get_handler, .user_ctx = NULL };
-        httpd_uri_t uri_js    = { .uri = "/app.js", .method = HTTP_GET, .handler = app_js_get_handler, .user_ctx = NULL };
+        httpd_uri_t uri_root = { .uri = "/", .method = HTTP_GET, .handler = index_get_handler, .user_ctx = NULL };
+        httpd_register_uri_handler(server, &uri_root);
         
-        // Auth & System API
-        httpd_uri_t uri_status = { .uri = "/api/status", .method = HTTP_GET, .handler = api_status_get_handler, .user_ctx = NULL };
-        httpd_uri_t uri_setup  = { .uri = "/api/setup", .method = HTTP_POST, .handler = api_setup_post_handler, .user_ctx = NULL };
-        httpd_uri_t uri_login  = { .uri = "/api/login", .method = HTTP_POST, .handler = api_login_post_handler, .user_ctx = NULL };
-        httpd_uri_t uri_time   = { .uri = "/api/time", .method = HTTP_POST, .handler = api_time_post_handler, .user_ctx = NULL };
-
-        // API
-        httpd_uri_t uri_list  = { .uri = "/list", .method = HTTP_GET, .handler = list_get_handler, .user_ctx = NULL };
-        httpd_uri_t uri_photo = { .uri = "/photo", .method = HTTP_GET, .handler = photo_get_handler, .user_ctx = NULL };
-        
-        // Android captive portal detection
-        httpd_uri_t uri_204   = { .uri = "/generate_204", .method = HTTP_GET, .handler = captive_portal_handler, .user_ctx = NULL };
-        // Captive portal catch-all handled by 404 handler instead
-
-        httpd_register_uri_handler(server, &uri_index);
+        httpd_uri_t uri_css = { .uri = "/styles.css", .method = HTTP_GET, .handler = styles_get_handler, .user_ctx = NULL };
         httpd_register_uri_handler(server, &uri_css);
+        
+        httpd_uri_t uri_js = { .uri = "/app.js", .method = HTTP_GET, .handler = app_js_get_handler, .user_ctx = NULL };
         httpd_register_uri_handler(server, &uri_js);
         
+        httpd_uri_t uri_status = { .uri = "/api/status", .method = HTTP_GET, .handler = status_get_handler, .user_ctx = NULL };
         httpd_register_uri_handler(server, &uri_status);
+        
+        httpd_uri_t uri_setup = { .uri = "/api/setup", .method = HTTP_POST, .handler = setup_post_handler, .user_ctx = NULL };
         httpd_register_uri_handler(server, &uri_setup);
+        
+        httpd_uri_t uri_login = { .uri = "/api/login", .method = HTTP_POST, .handler = login_post_handler, .user_ctx = NULL };
         httpd_register_uri_handler(server, &uri_login);
+
+        httpd_uri_t uri_list = { .uri = "/list", .method = HTTP_GET, .handler = list_get_handler, .user_ctx = NULL };
+        httpd_register_uri_handler(server, &uri_list);
+        
+        httpd_uri_t uri_photo = { .uri = "/photo", .method = HTTP_GET, .handler = photo_get_handler, .user_ctx = NULL };
+        httpd_register_uri_handler(server, &uri_photo);
+
+        httpd_uri_t uri_time = { .uri = "/api/time", .method = HTTP_POST, .handler = time_post_handler, .user_ctx = NULL };
         httpd_register_uri_handler(server, &uri_time);
 
-        httpd_register_uri_handler(server, &uri_list);
-        httpd_register_uri_handler(server, &uri_photo);
-        httpd_register_uri_handler(server, &uri_204);
-        // El handler 404 se encarga del resto
-        // Registrar el manejador de 404 para cualquier otra ruta (por ejemplo /hotspot-detect.html de iOS)
-        httpd_register_err_handler(server, HTTPD_404_NOT_FOUND, err_404_handler);
+        ESP_LOGI(TAG, "HTTP Server iniciado correctamente.");
 
-        ESP_LOGI(TAG, "HTTP Server y Captive Portal iniciados");
+        // Registrar error handler 404 para el captive portal
+        httpd_register_err_handler(server, HTTPD_404_NOT_FOUND, captive_portal_handler);
+
         return ESP_OK;
     }
     

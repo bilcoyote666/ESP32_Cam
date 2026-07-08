@@ -142,7 +142,7 @@ esp_err_t camera_init(void) {
     sensor->set_whitebal(sensor, 1);         // Auto white balance ON
     sensor->set_awb_gain(sensor, 1);         // AWB gain ON
     sensor->set_exposure_ctrl(sensor, 1);    // AEC ON (auto exposición)
-    sensor->set_aec2(sensor, 0);             // AEC DSP OFF
+    sensor->set_aec2(sensor, 1);             // AEC DSP ON (procesamiento avanzado para mejor luz)
     sensor->set_gain_ctrl(sensor, 1);        // AGC ON (auto ganancia)
     sensor->set_bpc(sensor, 0);              // Black pixel correction OFF
     sensor->set_wpc(sensor, 1);              // White pixel correction ON
@@ -223,8 +223,41 @@ void camera_free_frame(camera_fb_t* fb) {
 af_result_t camera_trigger_autofocus(void) {
     if (!s_initialized) return AF_RESULT_FAILED;
 
-    ESP_LOGI(TAG, "Cámara OV2640 tiene enfoque fijo, saltando AF...");
-    return AF_RESULT_SUCCESS;
+    ESP_LOGI(TAG, "Lanzando AF en OV5640...");
+    
+    // Limpiar ACK previo
+    ov5640_write_reg(OV5640_REG_CMD_ACK, 0x00);
+    // Enviar comando para disparar AF
+    ov5640_write_reg(OV5640_REG_CMD_MAIN, OV5640_CMD_TRIGGER_AF);
+    
+    // Esperar confirmación (ACK) del comando
+    uint8_t ack = 0;
+    int wait_ms = 0;
+    while (ack != OV5640_CMD_TRIGGER_AF && wait_ms < CAM_AF_TIMEOUT_MS) {
+        vTaskDelay(pdMS_TO_TICKS(10));
+        wait_ms += 10;
+        ov5640_read_reg(OV5640_REG_CMD_ACK, &ack);
+    }
+    
+    if (ack != OV5640_CMD_TRIGGER_AF) {
+        ESP_LOGW(TAG, "AF Timeout esperando ACK");
+        return AF_RESULT_TIMEOUT;
+    }
+    
+    // Esperar a que termine de enfocar
+    uint8_t status = OV5640_AF_FOCUSING;
+    wait_ms = 0;
+    while (status != OV5640_AF_FOCUSED && status != OV5640_AF_IDLE && wait_ms < CAM_AF_TIMEOUT_MS) {
+        vTaskDelay(pdMS_TO_TICKS(50));
+        wait_ms += 50;
+        ov5640_read_reg(OV5640_REG_FW_STATUS, &status);
+    }
+    
+    if (status == OV5640_AF_FOCUSED) {
+        return AF_RESULT_SUCCESS;
+    } else {
+        return AF_RESULT_TIMEOUT;
+    }
 }
 
 void camera_stop_autofocus(void) {

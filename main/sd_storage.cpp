@@ -187,93 +187,90 @@ esp_err_t sd_list_photos(photo_list_t* list) {
 
     xSemaphoreTake(s_sd_mutex, portMAX_DELAY);
 
-    DIR* dir = opendir(SD_DCIM_DIR);
-    if (!dir) {
-        ESP_LOGE(TAG, "No se puede abrir directorio DCIM: %s", strerror(errno));
-        xSemaphoreGive(s_sd_mutex);
-        return ESP_FAIL;
-    }
+    const char* dirs_to_check[] = { SD_DCIM_DIR, SD_MOUNT_POINT };
+    uint32_t total_count = 0;
 
-    // Primera pasada: contar archivos
-    uint32_t count = 0;
-    struct dirent* entry;
-    while ((entry = readdir(dir)) != NULL) {
-        if (entry->d_type == DT_DIR) continue; // Ignorar directorios si los detecta
-
-        const char* name = entry->d_name;
-        // Ignorar archivos ocultos o de metadatos de Mac (ej. ._FOTO.jpg)
-        if (name[0] == '.') continue;
+    // Primera pasada: contar archivos en ambos directorios
+    for (int d = 0; d < 2; d++) {
+        DIR* dir = opendir(dirs_to_check[d]);
+        if (!dir) continue;
         
-        size_t len = strlen(name);
-        // Solo archivos .jpg o .jpeg
-        if (len > 4 &&
-            (strcasecmp(name + len - 4, ".jpg")  == 0 ||
-             strcasecmp(name + len - 5, ".jpeg") == 0)) {
-            count++;
+        struct dirent* entry;
+        while ((entry = readdir(dir)) != NULL) {
+            if (entry->d_type == DT_DIR) continue;
+            
+            const char* name = entry->d_name;
+            if (name[0] == '.') continue;
+            
+            size_t len = strlen(name);
+            if (len > 4 && (strcasecmp(name + len - 4, ".jpg") == 0 || strcasecmp(name + len - 5, ".jpeg") == 0)) {
+                total_count++;
+            }
         }
+        closedir(dir);
     }
 
-    if (count == 0) {
-        closedir(dir);
+    if (total_count == 0) {
         xSemaphoreGive(s_sd_mutex);
         return ESP_OK;
     }
 
     // Asignar array
-    list->photos = (photo_info_t*)malloc(count * sizeof(photo_info_t));
+    list->photos = (photo_info_t*)malloc(total_count * sizeof(photo_info_t));
     if (!list->photos) {
-        closedir(dir);
         xSemaphoreGive(s_sd_mutex);
         return ESP_ERR_NO_MEM;
     }
 
     // Segunda pasada: rellenar info
-    rewinddir(dir);
     uint32_t idx = 0;
-    while ((entry = readdir(dir)) != NULL && idx < count) {
-        if (entry->d_type == DT_DIR) continue;
-        
-        const char* name = entry->d_name;
-        if (name[0] == '.') continue;
-        
-        size_t len = strlen(name);
-        if (!(len > 4 && (strcasecmp(name + len - 4, ".jpg") == 0 ||
-                          strcasecmp(name + len - 5, ".jpeg") == 0))) {
-            continue;
+    for (int d = 0; d < 2; d++) {
+        DIR* dir = opendir(dirs_to_check[d]);
+        if (!dir) continue;
+
+        struct dirent* entry;
+        while ((entry = readdir(dir)) != NULL && idx < total_count) {
+            if (entry->d_type == DT_DIR) continue;
+            
+            const char* name = entry->d_name;
+            if (name[0] == '.') continue;
+            
+            size_t len = strlen(name);
+            if (!(len > 4 && (strcasecmp(name + len - 4, ".jpg") == 0 || strcasecmp(name + len - 5, ".jpeg") == 0))) {
+                continue;
+            }
+
+            photo_info_t* info = &list->photos[idx];
+            strncpy(info->filename, name, sizeof(info->filename) - 1);
+            info->filename[sizeof(info->filename) - 1] = '\0';
+
+            snprintf(info->full_path, sizeof(info->full_path), "%s/%s", dirs_to_check[d], name);
+
+            struct stat st;
+            if (stat(info->full_path, &st) == 0) {
+                info->size_bytes = (uint32_t)st.st_size;
+                list->total_bytes += st.st_size;
+
+                struct tm t;
+                localtime_r(&st.st_mtime, &t);
+                snprintf(info->timestamp, sizeof(info->timestamp),
+                         "%04d-%02d-%02d %02d:%02d:%02d",
+                         t.tm_year + 1900, t.tm_mon + 1, t.tm_mday,
+                         t.tm_hour, t.tm_min, t.tm_sec);
+            } else {
+                info->size_bytes = 0;
+                strncpy(info->timestamp, "0000-00-00 00:00:00", sizeof(info->timestamp));
+            }
+
+            idx++;
         }
-
-        photo_info_t* info = &list->photos[idx];
-        strncpy(info->filename, name, sizeof(info->filename) - 1);
-        info->filename[sizeof(info->filename) - 1] = '\0';
-
-        snprintf(info->full_path, sizeof(info->full_path),
-                 "%s/%s", SD_DCIM_DIR, name);
-
-        struct stat st;
-        if (stat(info->full_path, &st) == 0) {
-            info->size_bytes = (uint32_t)st.st_size;
-            list->total_bytes += st.st_size;
-
-            struct tm t;
-            localtime_r(&st.st_mtime, &t);
-            snprintf(info->timestamp, sizeof(info->timestamp),
-                     "%04d-%02d-%02d %02d:%02d:%02d",
-                     t.tm_year + 1900, t.tm_mon + 1, t.tm_mday,
-                     t.tm_hour, t.tm_min, t.tm_sec);
-        } else {
-            info->size_bytes = 0;
-            strncpy(info->timestamp, "0000-00-00 00:00:00", sizeof(info->timestamp));
-        }
-
-        idx++;
+        closedir(dir);
     }
 
-    closedir(dir);
     xSemaphoreGive(s_sd_mutex);
 
     list->count = idx;
-    ESP_LOGI(TAG, "Lista: %lu fotos, %.2f MB total",
-             list->count, list->total_bytes / 1024.0f / 1024.0f);
+    ESP_LOGI(TAG, "Lista: %lu fotos, %.2f MB total", list->count, list->total_bytes / 1024.0f / 1024.0f);
     return ESP_OK;
 }
 
@@ -288,6 +285,23 @@ void sd_free_photo_list(photo_list_t* list) {
 }
 
 char* sd_list_files_json(void) {
+    DIR* dir = opendir(SD_DCIM_DIR);
+
+    ESP_LOGI(TAG, "Abriendo: %s", SD_DCIM_DIR);
+
+    if (!dir) {
+        ESP_LOGE(TAG, "ERROR: no se puede abrir el directorio");
+        return strdup("[]");
+    }
+
+    struct dirent *entry;
+
+    while ((entry = readdir(dir)) != NULL) {
+        ESP_LOGI(TAG, "Archivo: '%s'  tipo=%d", entry->d_name, entry->d_type);
+    }
+
+    closedir(dir); // He cambiado rewinddir por closedir para evitar una fuga de memoria
+
     photo_list_t list = {0};
     if (sd_list_photos(&list) != ESP_OK) {
         return strdup("[]");
@@ -330,7 +344,12 @@ FILE* sd_open_file(const char* filename, const char* mode) {
     if (!s_mounted) return NULL;
     char path[SD_MAX_FILENAME_LEN + 32];
     snprintf(path, sizeof(path), "%s/%s", SD_DCIM_DIR, filename);
-    return fopen(path, mode);
+    FILE* f = fopen(path, mode);
+    if (!f && (mode[0] == 'r')) {
+        snprintf(path, sizeof(path), "%s/%s", SD_MOUNT_POINT, filename);
+        f = fopen(path, mode);
+    }
+    return f;
 }
 
 esp_err_t sd_read_photo(const char* filename, uint8_t** data, size_t* size) {
