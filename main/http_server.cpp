@@ -217,6 +217,35 @@ static esp_err_t time_post_handler(httpd_req_t *req) {
     return ESP_OK;
 }
 
+static esp_err_t delete_post_handler(httpd_req_t *req) {
+    if (auth_is_password_set() && !is_authenticated(req)) {
+        httpd_resp_send_err(req, HTTPD_401_UNAUTHORIZED, "No Autorizado");
+        return ESP_FAIL;
+    }
+    
+    char filename[128] = {0};
+    if (httpd_req_get_url_query_str(req, filename, sizeof(filename)) != ESP_OK) {
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Falta query string");
+        return ESP_FAIL;
+    }
+    
+    char param[64] = {0};
+    if (httpd_query_key_value(filename, "name", param, sizeof(param)) != ESP_OK) {
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Falta parametro name");
+        return ESP_FAIL;
+    }
+
+    ESP_LOGI(TAG, "POST /api/delete -> Eliminando foto: %s", param);
+    if (sd_delete_photo(param) == ESP_OK) {
+        httpd_resp_set_type(req, "application/json");
+        httpd_resp_send(req, "{\"ok\":true}", HTTPD_RESP_USE_STRLEN);
+        return ESP_OK;
+    } else {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Error eliminando el archivo de la SD");
+        return ESP_FAIL;
+    }
+}
+
 static esp_err_t capture_post_handler(httpd_req_t *req) {
     if (auth_is_password_set() && !is_authenticated(req)) {
         httpd_resp_send_err(req, HTTPD_401_UNAUTHORIZED, "No Autorizado");
@@ -284,6 +313,9 @@ esp_err_t http_server_start(void) {
 
         httpd_uri_t uri_capture = { .uri = "/api/capture", .method = HTTP_POST, .handler = capture_post_handler, .user_ctx = NULL };
         httpd_register_uri_handler(server, &uri_capture);
+
+        httpd_uri_t uri_delete = { .uri = "/api/delete", .method = HTTP_POST, .handler = delete_post_handler, .user_ctx = NULL };
+        httpd_register_uri_handler(server, &uri_delete);
 
         ESP_LOGI(TAG, "HTTP Server iniciado correctamente.");
 
