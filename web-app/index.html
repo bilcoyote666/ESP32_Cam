@@ -1328,7 +1328,7 @@
             sourceImage.src = url;
         }
 
-        function renderCanvas() {
+        function renderCanvas(forDownload = false) {
             if (!sourceImage.complete || sourceImage.naturalWidth === 0) return;
 
             const imgW = sourceImage.naturalWidth;
@@ -1358,19 +1358,28 @@
             
             const filterString = `brightness(${totalBrightness}%) contrast(${totalContrast}%) saturate(${currentPreset === 'bw' ? 0 : totalSaturation}%)`;
 
+            // Bypassear ctx.filter para visualización ya que da fallos en navegadores WebView y Safari móviles (HTTP)
+            // Usamos CSS filter en el canvas para máxima compatibilidad visual.
+            if (!forDownload) {
+                canvas.style.filter = filterString;
+                try { ctx.filter = 'none'; } catch (e) {}
+            } else {
+                canvas.style.filter = 'none';
+                try { ctx.filter = filterString; } catch (e) {}
+            }
+
             if (currentFrame === "none") {
-                ctx.filter = filterString;
                 ctx.drawImage(sourceImage, 0, 0, canvas.width, canvas.height);
                 
                 if (preset.tint) {
-                    ctx.filter = 'none';
+                    try { ctx.filter = 'none'; } catch (e) {}
                     ctx.globalCompositeOperation = 'multiply';
                     ctx.fillStyle = preset.tint;
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     ctx.globalCompositeOperation = 'source-over';
                 }
             } else if (currentFrame === "film") {
-                ctx.filter = 'none';
+                try { ctx.filter = 'none'; } catch (e) {}
                 ctx.fillStyle = '#0b0b0d';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -1379,18 +1388,20 @@
                 const drawW = canvas.width - (padX * 2);
                 const drawH = canvas.height - (padY * 2);
 
-                ctx.filter = filterString;
+                if (forDownload) {
+                    try { ctx.filter = filterString; } catch (e) {}
+                }
                 ctx.drawImage(sourceImage, padX, padY, drawW, drawH);
 
                 if (preset.tint) {
-                    ctx.filter = 'none';
+                    try { ctx.filter = 'none'; } catch (e) {}
                     ctx.globalCompositeOperation = 'multiply';
                     ctx.fillStyle = preset.tint;
                     ctx.fillRect(padX, padY, drawW, drawH);
                     ctx.globalCompositeOperation = 'source-over';
                 }
 
-                ctx.filter = 'none';
+                try { ctx.filter = 'none'; } catch (e) {}
                 const numHoles = 7;
                 const holeW = canvas.width * 0.035;
                 const holeH = canvas.height * 0.055;
@@ -1415,7 +1426,7 @@
                 ctx.fillText('▲ 25', canvas.width * 0.84, canvas.height * 0.965);
                 
             } else if (currentFrame === "instant") {
-                ctx.filter = 'none';
+                try { ctx.filter = 'none'; } catch (e) {}
                 ctx.fillStyle = '#f6f5f0';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -1427,18 +1438,20 @@
                 ctx.fillStyle = '#e0dfd5';
                 ctx.fillRect(padX - 2, padY - 2, drawW + 4, drawH + 4);
 
-                ctx.filter = filterString;
+                if (forDownload) {
+                    try { ctx.filter = filterString; } catch (e) {}
+                }
                 ctx.drawImage(sourceImage, padX, padY, drawW, drawH);
 
                 if (preset.tint) {
-                    ctx.filter = 'none';
+                    try { ctx.filter = 'none'; } catch (e) {}
                     ctx.globalCompositeOperation = 'multiply';
                     ctx.fillStyle = preset.tint;
                     ctx.fillRect(padX, padY, drawW, drawH);
                     ctx.globalCompositeOperation = 'source-over';
                 }
 
-                ctx.filter = 'none';
+                try { ctx.filter = 'none'; } catch (e) {}
                 ctx.fillStyle = '#424246';
                 ctx.textAlign = 'center';
                 
@@ -1549,6 +1562,9 @@
 
         btnDownload.addEventListener('click', () => {
             try {
+                // Forzar dibujado del filtro en el canvas antes de exportar
+                renderCanvas(true);
+
                 const quality = 0.92;
                 const dataUrl = canvas.toDataURL('image/jpeg', quality);
                 const link = document.createElement('a');
@@ -1559,18 +1575,26 @@
                 link.download = `${cleanName}${presetTag}${frameTag}.jpg`;
                 link.href = dataUrl;
                 link.click();
+
+                // Restaurar vista visual del canvas
+                renderCanvas(false);
             } catch (e) {
                 console.error("Fallo al descargar la imagen:", e);
                 alert("Error al descargar la imagen en este navegador.");
+                renderCanvas(false);
             }
         });
 
         btnShare.addEventListener('click', async () => {
             try {
+                // Forzar dibujado del filtro en el canvas antes de exportar
+                renderCanvas(true);
+
                 const quality = 0.92;
                 canvas.toBlob(async (blob) => {
                     if (!blob) {
                         alert("Error generando el archivo para compartir.");
+                        renderCanvas(false);
                         return;
                     }
                     const cleanName = currentPhotoName ? currentPhotoName.replace('.jpg', '') : 'RABOSETA_CAM';
@@ -1585,9 +1609,11 @@
                     } else {
                         alert("Compartir directamente no está soportado en este navegador. Descarga la foto y compártela.");
                     }
+                    renderCanvas(false);
                 }, 'image/jpeg', quality);
             } catch (e) {
                 console.error("Sharing error:", e);
+                renderCanvas(false);
             }
         });
 
