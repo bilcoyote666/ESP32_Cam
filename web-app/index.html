@@ -823,12 +823,122 @@
             .controls-panel { width: 400px; }
         }
 
-        @media (max-width: 480px) {
-            .status-bar { padding: 0 10px; gap: 4px; }
-            .app-logo { font-size: 0.95rem; letter-spacing: 0.05em; }
-            .status-indicator { gap: 4px; }
-            .status-indicator .status-text { font-size: 0.65rem; }
-            .system-badge { font-size: 0.65rem; padding: 1px 6px; }
+        /* Modal para Guardar en Galería */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 16px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-card {
+            background: #18181b;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: var(--accent-gold);
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .modal-close-btn {
+            background: none;
+            border: none;
+            color: var(--text-gray);
+            font-size: 1.5rem;
+            cursor: pointer;
+            line-height: 1;
+            padding: 4px;
+            transition: var(--transition-smooth);
+        }
+
+        .modal-close-btn:hover {
+            color: white;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-instruction {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            background: rgba(255, 170, 0, 0.08);
+            border-left: 3px solid var(--accent-gold);
+            padding: 12px 14px;
+            border-radius: 8px;
+        }
+
+        .modal-instruction .highlight {
+            color: white;
+            font-weight: 700;
+            background: rgba(255,255,255,0.1);
+            padding: 1px 6px;
+            border-radius: 3px;
+        }
+
+        .modal-image-container {
+            width: 100%;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            background: #09090b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-image-container img {
+            max-width: 100%;
+            max-height: 48vh;
+            object-fit: contain;
+            display: block;
+            -webkit-touch-callout: default !important; /* Forzar menú de guardar en iOS */
+            user-select: all !important; /* Permitir toque largo en Android/iOS */
+        }
+
+        .modal-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
     </style>
 </head>
@@ -1041,6 +1151,28 @@
         </main>
     </div>
 
+    <!-- Modal para Guardar en Galería -->
+    <div id="save-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Guardar en Galería</h3>
+                <button id="modal-close" class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-instruction">
+                    <strong>📱 Para guardar en tu galería:</strong><br>
+                    Mantén pulsada la imagen de abajo y selecciona <span class="highlight">"Guardar en Fotos"</span> (iOS/iPhone) o <span class="highlight">"Descargar imagen"</span> (Android).
+                </p>
+                <div class="modal-image-container">
+                    <img id="modal-preview-img" alt="Vista previa para guardar">
+                </div>
+                <div class="modal-actions">
+                    <button id="btn-modal-download-raw" class="btn-primary-accent">Descargar archivo directo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Hidden element for loading image in full size -->
     <img id="source-image" style="display:none;" crossorigin="anonymous">
 
@@ -1094,6 +1226,12 @@
         const btnDownload = document.getElementById('btn-download');
         const btnShare = document.getElementById('btn-share');
         const btnReset = document.getElementById('btn-reset');
+
+        // Modal de guardado
+        const saveModal = document.getElementById('save-modal');
+        const modalClose = document.getElementById('modal-close');
+        const modalPreviewImg = document.getElementById('modal-preview-img');
+        const btnModalDownloadRaw = document.getElementById('btn-modal-download-raw');
 
         // Status
         const statusIndicator = document.getElementById('status-indicator');
@@ -1567,14 +1705,36 @@
 
                 const quality = 0.92;
                 const dataUrl = canvas.toDataURL('image/jpeg', quality);
-                const link = document.createElement('a');
+                
                 const cleanName = currentPhotoName ? currentPhotoName.replace('.jpg', '') : 'RABOSETA_CAM';
                 const frameTag = currentFrame !== 'none' ? `_framed_${currentFrame}` : '';
                 const presetTag = currentPreset !== 'natural' ? `_${currentPreset}` : '';
-                
-                link.download = `${cleanName}${presetTag}${frameTag}.jpg`;
-                link.href = dataUrl;
-                link.click();
+                const fileName = `${cleanName}${presetTag}${frameTag}.jpg`;
+
+                // Detectar si es dispositivo móvil
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+                if (isMobile) {
+                    // Cargar imagen en el modal
+                    modalPreviewImg.src = dataUrl;
+                    
+                    // Configurar descarga directa como fallback
+                    btnModalDownloadRaw.onclick = () => {
+                        const link = document.createElement('a');
+                        link.download = fileName;
+                        link.href = dataUrl;
+                        link.click();
+                    };
+
+                    // Abrir modal
+                    saveModal.classList.add('active');
+                } else {
+                    // Descarga directa normal en PC
+                    const link = document.createElement('a');
+                    link.download = fileName;
+                    link.href = dataUrl;
+                    link.click();
+                }
 
                 // Restaurar vista visual del canvas
                 renderCanvas(false);
@@ -1582,6 +1742,19 @@
                 console.error("Fallo al descargar la imagen:", e);
                 alert("Error al descargar la imagen en este navegador.");
                 renderCanvas(false);
+            }
+        });
+
+        // Eventos para cerrar el modal de guardado
+        modalClose.addEventListener('click', () => {
+            saveModal.classList.remove('active');
+            modalPreviewImg.src = "";
+        });
+
+        saveModal.addEventListener('click', (e) => {
+            if (e.target === saveModal) {
+                saveModal.classList.remove('active');
+                modalPreviewImg.src = "";
             }
         });
 
