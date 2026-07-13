@@ -44,8 +44,6 @@ static void dns_server_task(void *pvParameters) {
         int len = recvfrom(sock, rx_buffer, sizeof(rx_buffer), 0, (struct sockaddr *)&source_addr, &socklen);
 
         if (len > 0) {
-            // DNS header occupies 12 bytes
-            // A simple DNS response replacing Questions with Answers
             char tx_buffer[128];
             if (len > sizeof(tx_buffer)) len = sizeof(tx_buffer);
             memcpy(tx_buffer, rx_buffer, len);
@@ -56,39 +54,57 @@ static void dns_server_task(void *pvParameters) {
             // Questions
             tx_buffer[4] = rx_buffer[4];
             tx_buffer[5] = rx_buffer[5];
-            // Answer RRs
-            tx_buffer[6] = rx_buffer[4];
-            tx_buffer[7] = rx_buffer[5];
-            // Authority & Additional RRs = 0
-            tx_buffer[8] = 0; tx_buffer[9] = 0;
-            tx_buffer[10] = 0; tx_buffer[11] = 0;
+            
+            // Find end of QNAME to discard EDNS0 (Additional RRs)
+            // Header is 12 bytes. Question starts at 12.
+            int qname_pos = 12;
+            while (qname_pos < len - 1 && rx_buffer[qname_pos] != 0) {
+                int label_len = rx_buffer[qname_pos];
+                if (qname_pos + label_len + 1 >= len) {
+                    break; // Malformed or truncated
+                }
+                qname_pos += label_len + 1;
+            }
+            
+            if (qname_pos < len && rx_buffer[qname_pos] == 0) {
+                int q_end = qname_pos + 1 + 2 + 2; // zero byte + QTYPE (2) + QCLASS (2)
+                if (q_end <= len) {
+                    // Set Answer RRs to the number of Questions (usually 1)
+                    tx_buffer[6] = rx_buffer[4];
+                    tx_buffer[7] = rx_buffer[5];
+                    
+                    // Clear Authority & Additional RRs = 0
+                    tx_buffer[8] = 0; tx_buffer[9] = 0;
+                    tx_buffer[10] = 0; tx_buffer[11] = 0;
+                    
+                    int reply_len = q_end;
+                    // Construct DNS Answer appended to the Question
+                    // Pointer to the domain name (offset 12)
+                    tx_buffer[reply_len++] = 0xC0;
+                    tx_buffer[reply_len++] = 0x0C;
+                    // Type A (1)
+                    tx_buffer[reply_len++] = 0x00;
+                    tx_buffer[reply_len++] = 0x01;
+                    // Class IN (1)
+                    tx_buffer[reply_len++] = 0x00;
+                    tx_buffer[reply_len++] = 0x01;
+                    // TTL 60 seconds
+                    tx_buffer[reply_len++] = 0x00;
+                    tx_buffer[reply_len++] = 0x00;
+                    tx_buffer[reply_len++] = 0x00;
+                    tx_buffer[reply_len++] = 0x3C;
+                    // Data length (4 bytes for IPv4)
+                    tx_buffer[reply_len++] = 0x00;
+                    tx_buffer[reply_len++] = 0x04;
+                    // IP Address (192.168.4.1)
+                    tx_buffer[reply_len++] = 192;
+                    tx_buffer[reply_len++] = 168;
+                    tx_buffer[reply_len++] = 4;
+                    tx_buffer[reply_len++] = 1;
 
-            // Construct DNS Answer appended to the original query
-            int reply_len = len;
-            // Pointer to the domain name (offset 12)
-            tx_buffer[reply_len++] = 0xC0;
-            tx_buffer[reply_len++] = 0x0C;
-            // Type A (1)
-            tx_buffer[reply_len++] = 0x00;
-            tx_buffer[reply_len++] = 0x01;
-            // Class IN (1)
-            tx_buffer[reply_len++] = 0x00;
-            tx_buffer[reply_len++] = 0x01;
-            // TTL 60 seconds
-            tx_buffer[reply_len++] = 0x00;
-            tx_buffer[reply_len++] = 0x00;
-            tx_buffer[reply_len++] = 0x00;
-            tx_buffer[reply_len++] = 0x3C;
-            // Data length (4 bytes for IPv4)
-            tx_buffer[reply_len++] = 0x00;
-            tx_buffer[reply_len++] = 0x04;
-            // IP Address (192.168.4.1 is the default for ESP32 SoftAP)
-            tx_buffer[reply_len++] = 192;
-            tx_buffer[reply_len++] = 168;
-            tx_buffer[reply_len++] = 4;
-            tx_buffer[reply_len++] = 1;
-
-            sendto(sock, tx_buffer, reply_len, 0, (struct sockaddr *)&source_addr, sizeof(source_addr));
+                    sendto(sock, tx_buffer, reply_len, 0, (struct sockaddr *)&source_addr, sizeof(source_addr));
+                }
+            }
         }
     }
 }
