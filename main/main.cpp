@@ -54,7 +54,7 @@ static const char* TAG = "MAIN";
 // =============================================================================
 static volatile system_state_t s_sys_state = SYS_STATE_INIT;
 static QueueHandle_t           s_capture_queue = NULL;  // Cola de mensajes de captura
-static SemaphoreHandle_t       s_capture_mutex = NULL;  // Mutex: solo 1 captura a la vez
+SemaphoreHandle_t              s_capture_mutex = NULL;  // Mutex: solo 1 captura a la vez
 
 // Control de auto-disparo por detección de caras
 static volatile uint32_t s_last_face_capture_ms = 0;
