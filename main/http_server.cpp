@@ -7,10 +7,6 @@
 #include "sd_storage.h"
 #include "auth.h"
 #include <sys/param.h>
-#include "esp_camera.h"
-#include "freertos/semphr.h"
-
-extern SemaphoreHandle_t s_capture_mutex;
 
 static const char *TAG = "HTTP";
 
@@ -44,53 +40,6 @@ static esp_err_t index_get_handler(httpd_req_t *req) {
     httpd_resp_send(req, (const char *)index_html_start, len);
     return ESP_OK;
 }
-
-static esp_err_t stream_get_handler(httpd_req_t *req) {
-    camera_fb_t *fb = NULL;
-    esp_err_t res = ESP_OK;
-    char part_buf[64];
-
-    res = httpd_resp_set_type(req, "multipart/x-mixed-replace;boundary=123456789000000000000987654321");
-    if (res != ESP_OK) return res;
-
-    ESP_LOGI(TAG, "Stream de vídeo iniciado.");
-
-    while (true) {
-        if (s_capture_mutex && xSemaphoreTake(s_capture_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
-            fb = esp_camera_fb_get();
-            if (!fb) {
-                xSemaphoreGive(s_capture_mutex);
-                ESP_LOGE(TAG, "Fallo al obtener frame de cámara");
-                res = ESP_FAIL;
-                break;
-            }
-
-            size_t hlen = snprintf(part_buf, 64, "Content-Type: image/jpeg\r\nContent-Length: %d\r\n\r\n", fb->len);
-            res = httpd_resp_send_chunk(req, part_buf, hlen);
-            if (res == ESP_OK) {
-                res = httpd_resp_send_chunk(req, (const char *)fb->buf, fb->len);
-            }
-            if (res == ESP_OK) {
-                res = httpd_resp_send_chunk(req, "\r\n--123456789000000000000987654321\r\n", 37);
-            }
-
-            esp_camera_fb_return(fb);
-            xSemaphoreGive(s_capture_mutex);
-        } else {
-            vTaskDelay(pdMS_TO_TICKS(50));
-            continue;
-        }
-
-        if (res != ESP_OK) break;
-        vTaskDelay(pdMS_TO_TICKS(60)); // ~15 FPS
-    }
-
-    ESP_LOGI(TAG, "Stream de vídeo finalizado.");
-    return res;
-}
-
-
-
 // ============================================================================
 // HANDLERS DE LA API Y FOTOS
 // ============================================================================
@@ -313,9 +262,6 @@ esp_err_t http_server_start(void) {
 
         httpd_uri_t uri_root = { .uri = "/", .method = HTTP_GET, .handler = index_get_handler, .user_ctx = NULL };
         httpd_register_uri_handler(server, &uri_root);
-
-        httpd_uri_t uri_stream = { .uri = "/stream", .method = HTTP_GET, .handler = stream_get_handler, .user_ctx = NULL };
-        httpd_register_uri_handler(server, &uri_stream);
 
         
         httpd_uri_t uri_status = { .uri = "/api/status", .method = HTTP_GET, .handler = status_get_handler, .user_ctx = NULL };

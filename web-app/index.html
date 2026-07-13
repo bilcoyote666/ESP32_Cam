@@ -829,140 +829,7 @@
             .status-indicator { gap: 4px; }
             .status-indicator .status-text { font-size: 0.65rem; }
             .system-badge { font-size: 0.65rem; padding: 1px 6px; }
-        }
-
-        /* Pantalla de Cámara en Vivo */
-        .live-screen {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .live-screen.active {
-            display: flex;
-        }
-
-        .live-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        .stream-panel {
-            position: relative;
-            width: 100%;
-            max-width: 640px;
-            aspect-ratio: 4/3;
-            background: #09090b;
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #live-stream-img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            background: #000;
-        }
-
-        .recording-overlay {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(4px);
-            padding: 6px 12px;
-            border-radius: 20px;
-            display: none;
-            align-items: center;
-            gap: 8px;
-            border: 1px solid rgba(255, 0, 0, 0.3);
-            z-index: 10;
-        }
-
-        .recording-overlay.active {
-            display: flex;
-        }
-
-        .rec-dot {
-            width: 8px;
-            height: 8px;
-            background: red;
-            border-radius: 50%;
-            animation: pulse 1s infinite alternate;
-        }
-
-        @keyframes pulse {
-            from { opacity: 0.3; }
-            to { opacity: 1; }
-        }
-
-        #recording-time {
-            color: white;
-            font-size: 0.85rem;
-            font-weight: 700;
-            font-family: monospace;
-        }
-
-        .live-controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 24px;
-            margin-top: 10px;
-        }
-
-        .btn-circle-action {
-            background: #18181b;
-            border: 1px solid var(--border-color);
-            color: white;
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: var(--transition-smooth);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-        }
-
-        .btn-circle-action:hover {
-            background: #27272a;
-            transform: scale(1.05);
-        }
-
-        .btn-circle-action:active {
-            transform: scale(0.95);
-        }
-
-        .btn-circle-action.recording {
-            border-color: red;
-            background: rgba(255, 0, 0, 0.1);
-        }
-
-        .btn-circle-action.recording #rec-icon-shape {
-            x: 9px;
-            y: 9px;
-            width: 6px;
-            height: 6px;
-            rx: 0px;
-            ry: 0px;
-            fill: red;
-        }
-
-        /* Modal para Guardar en Galería */
+        }        /* Modal para Guardar en Galería */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -1065,7 +932,7 @@
             align-items: center;
         }
 
-        .modal-image-container img, .modal-image-container video {
+        .modal-image-container img {
             max-width: 100%;
             max-height: 48vh;
             object-fit: contain;
@@ -1124,22 +991,13 @@
                     <div class="title-area">
                         <h2>Carrete Digital</h2>
                     </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button id="btn-live-view" class="btn-refresh">
-                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
-                                <path d="M23 7l-7 5 7 5V7z"></path>
-                                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-                            </svg>
-                            Cámara
-                        </button>
-                        <button id="btn-refresh" class="btn-refresh">
-                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M23 4v6h-6M1 20v-6h6"></path>
-                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                            </svg>
-                            Actualizar
-                        </button>
-                    </div>
+                    <button id="btn-refresh" class="btn-refresh">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M23 4v6h-6M1 20v-6h6"></path>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                        Actualizar
+                    </button>
                 </div>
 
                 <!-- 3D Carousel Wrapper -->
@@ -1166,47 +1024,6 @@
 
                 <!-- Carousel Indicators -->
                 <div id="carousel-dots" class="carousel-dots"></div>
-            </section>
-
-            <!-- 3. Live View & Recording Screen -->
-            <section id="live-view" class="view live-screen">
-                <div class="view-header" style="justify-content: space-between;">
-                    <button id="btn-live-back" class="btn-back" style="margin: 0;">
-                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="15 18 9 12 15 6"></polyline>
-                        </svg>
-                        Volver
-                    </button>
-                    <h2>Cámara en Vivo</h2>
-                    <div style="width: 70px;"></div>
-                </div>
-                
-                <div class="live-container">
-                    <div class="stream-panel">
-                        <img id="live-stream-img" alt="Iniciando stream de video..." src="">
-                        <canvas id="record-canvas" style="display: none;"></canvas>
-                        
-                        <div id="recording-overlay" class="recording-overlay">
-                            <span class="rec-dot"></span>
-                            <span id="recording-time">00:00</span>
-                        </div>
-                    </div>
-                    
-                    <div class="live-controls">
-                        <button id="btn-live-capture" class="btn-circle-action" title="Disparar foto">
-                            <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <circle cx="12" cy="12" r="5" fill="currentColor"></circle>
-                            </svg>
-                        </button>
-                        <button id="btn-live-record" class="btn-circle-action" title="Grabar video">
-                            <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <rect id="rec-icon-shape" x="8" y="8" width="8" height="8" rx="1" ry="1" fill="red" stroke="red"></rect>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
             </section>
 
             <!-- 3. Photo Editor Screen -->
@@ -1352,7 +1169,7 @@
                     <strong>📱 Para guardar en tu galería:</strong><br>
                     Mantén pulsada la imagen de abajo y selecciona <span class="highlight">"Guardar en Fotos"</span> (iOS/iPhone) o <span class="highlight">"Descargar imagen"</span> (Android).
                 </p>
-                <div id="modal-media-container" class="modal-image-container">
+                <div class="modal-image-container">
                     <img id="modal-preview-img" alt="Vista previa para guardar">
                 </div>
                 <div class="modal-actions">
@@ -1412,8 +1229,7 @@
         const views = {
             auth: document.getElementById('auth-view'),
             gallery: document.getElementById('gallery-view'),
-            editor: document.getElementById('editor-view'),
-            live: document.getElementById('live-view')
+            editor: document.getElementById('editor-view')
         };
 
         // Auth elements (Ignored but mapped for script stability)
@@ -1429,16 +1245,30 @@
         const btnRefresh = document.getElementById('btn-refresh');
         const btnPrev = document.getElementById('btn-prev');
         const btnNext = document.getElementById('btn-next');
-        const btnLiveView = document.getElementById('btn-live-view');
 
-        // Live view elements
-        const btnLiveBack = document.getElementById('btn-live-back');
-        const btnLiveCapture = document.getElementById('btn-live-capture');
-        const btnLiveRecord = document.getElementById('btn-live-record');
-        const liveStreamImg = document.getElementById('live-stream-img');
-        const recordCanvas = document.getElementById('record-canvas');
-        const recordingOverlay = document.getElementById('recording-overlay');
-        const recordingTime = document.getElementById('recording-time');
+        // Mic warning modal elements (declared globally so event listeners can be attached on startup)
+        const micWarningModal = document.getElementById('mic-warning-modal');
+        const micModalClose = document.getElementById('mic-modal-close');
+        const btnMicModalOk = document.getElementById('btn-mic-modal-ok');
+
+        // Eventos para cerrar el modal de micrófono (siempre activos)
+        if (micModalClose) {
+            micModalClose.addEventListener('click', () => {
+                micWarningModal.classList.remove('active');
+            });
+        }
+        if (btnMicModalOk) {
+            btnMicModalOk.addEventListener('click', () => {
+                micWarningModal.classList.remove('active');
+            });
+        }
+        if (micWarningModal) {
+            micWarningModal.addEventListener('click', (e) => {
+                if (e.target === micWarningModal) {
+                    micWarningModal.classList.remove('active');
+                }
+            });
+        }
 
         // Editor elements
         const btnBack = document.getElementById('btn-back');
@@ -2005,53 +1835,15 @@
             renderCanvas();
         });
 
-        // Abre modal para imágenes y videos de forma dinámica
-        function openSaveModal(mediaUrl, fileName, isVideo, mimeType) {
-            const container = document.getElementById('modal-media-container');
-            container.innerHTML = ''; // Limpiar previo
-
-            if (isVideo) {
-                const video = document.createElement('video');
-                video.src = mediaUrl;
-                video.controls = true;
-                video.autoplay = true;
-                video.loop = true;
-                video.style.maxWidth = '100%';
-                video.style.maxHeight = '48vh';
-                video.style.display = 'block';
-                video.style.borderRadius = '8px';
-                video.setAttribute('webkit-playsinline', 'true');
-                video.setAttribute('playsinline', 'true');
-                container.appendChild(video);
-                
-                // Actualizar la instrucción
-                document.querySelector('.modal-instruction').innerHTML = `
-                    <strong>📱 Para guardar en tu galería:</strong><br>
-                    Mantén pulsado el video y selecciona <span class="highlight">"Guardar video"</span> (iOS/iPhone) o <span class="highlight">"Descargar video"</span> (Android).
-                `;
-            } else {
-                const img = document.createElement('img');
-                img.src = mediaUrl;
-                img.style.maxWidth = '100%';
-                img.style.maxHeight = '48vh';
-                img.style.objectFit = 'contain';
-                img.style.display = 'block';
-                img.style.webkitTouchCallout = 'default';
-                img.style.userSelect = 'all';
-                container.appendChild(img);
-
-                // Actualizar la instrucción
-                document.querySelector('.modal-instruction').innerHTML = `
-                    <strong>📱 Para guardar en tu galería:</strong><br>
-                    Mantén pulsada la imagen de abajo y selecciona <span class="highlight">"Guardar en Fotos"</span> (iOS/iPhone) o <span class="highlight">"Descargar imagen"</span> (Android).
-                `;
-            }
+        // Abre modal para imágenes
+        function openSaveModal(dataUrl, fileName) {
+            modalPreviewImg.src = dataUrl;
 
             // Configurar el botón de descarga manual
             btnModalDownloadRaw.onclick = () => {
                 const link = document.createElement('a');
                 link.download = fileName;
-                link.href = mediaUrl;
+                link.href = dataUrl;
                 link.click();
             };
 
@@ -2076,7 +1868,7 @@
                 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
                 if (isMobile) {
-                    openSaveModal(dataUrl, fileName, false, 'image/jpeg');
+                    openSaveModal(dataUrl, fileName);
                 } else {
                     // Descarga directa normal en PC
                     const link = document.createElement('a');
@@ -2097,184 +1889,15 @@
         // Eventos para cerrar el modal de guardado
         modalClose.addEventListener('click', () => {
             saveModal.classList.remove('active');
-            const container = document.getElementById('modal-media-container');
-            container.innerHTML = '';
+            modalPreviewImg.src = "";
         });
 
         saveModal.addEventListener('click', (e) => {
             if (e.target === saveModal) {
                 saveModal.classList.remove('active');
-                const container = document.getElementById('modal-media-container');
-                container.innerHTML = '';
+                modalPreviewImg.src = "";
             }
         });
-
-        // ============================================================================
-        // LIVE VIEW & RECORDING LOGIC
-        // ============================================================================
-        let mediaRecorder = null;
-        let recordedChunks = [];
-        let isRecording = false;
-        let recordingInterval = null;
-        let canvasDrawInterval = null;
-
-        if (btnLiveView) {
-            btnLiveView.addEventListener('click', () => {
-                switchView('live');
-                // Iniciar stream del ESP32
-                liveStreamImg.src = "/stream?t=" + Date.now();
-            });
-        }
-
-        if (btnLiveBack) {
-            btnLiveBack.addEventListener('click', () => {
-                // Detener grabación si está en curso
-                if (isRecording) {
-                    stopRecordingFlow();
-                }
-                // Detener stream para ahorrar recursos del ESP32
-                liveStreamImg.src = "";
-                
-                switchView('gallery');
-                fetchPhotoList(); // Refrescar carrete
-            });
-        }
-
-        if (btnLiveCapture) {
-            btnLiveCapture.addEventListener('click', async () => {
-                try {
-                    btnLiveCapture.disabled = true;
-                    btnLiveCapture.style.opacity = '0.5';
-                    
-                    const res = await fetch('/api/capture', { method: 'POST' });
-                    if (res.ok) {
-                        const streamPanel = document.querySelector('.stream-panel');
-                        streamPanel.style.filter = 'brightness(2) contrast(0.5)';
-                        setTimeout(() => {
-                            streamPanel.style.filter = 'none';
-                        }, 150);
-                    } else {
-                        alert("Error al disparar la cámara.");
-                    }
-                } catch (e) {
-                    console.error("Capture trigger error:", e);
-                } finally {
-                    btnLiveCapture.disabled = false;
-                    btnLiveCapture.style.opacity = '1';
-                }
-            });
-        }
-
-        if (btnLiveRecord) {
-            btnLiveRecord.addEventListener('click', () => {
-                if (isRecording) {
-                    stopRecordingFlow();
-                } else {
-                    startRecordingFlow();
-                }
-            });
-        }
-
-        function startRecordingFlow() {
-            isRecording = true;
-            btnLiveRecord.classList.add('recording');
-            recordingOverlay.classList.add('active');
-            recordingTime.textContent = "00:00";
-            recordedChunks = [];
-
-            const w = liveStreamImg.naturalWidth || 640;
-            const h = liveStreamImg.naturalHeight || 480;
-            recordCanvas.width = w;
-            recordCanvas.height = h;
-
-            const recordCtx = recordCanvas.getContext('2d');
-
-            // Bucle para copiar frames del img al canvas
-            canvasDrawInterval = setInterval(() => {
-                if (liveStreamImg.complete && liveStreamImg.naturalWidth > 0) {
-                    recordCtx.drawImage(liveStreamImg, 0, 0, w, h);
-                }
-            }, 50); // 20 FPS (50ms)
-
-            const stream = recordCanvas.captureStream(20);
-            
-            let options = {};
-            if (MediaRecorder.isTypeSupported('video/mp4')) {
-                options.mimeType = 'video/mp4';
-            } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
-                options.mimeType = 'video/webm;codecs=vp9';
-            } else if (MediaRecorder.isTypeSupported('video/webm')) {
-                options.mimeType = 'video/webm';
-            }
-
-            try {
-                mediaRecorder = new MediaRecorder(stream, options);
-                mediaRecorder.ondataavailable = (e) => {
-                    if (e.data && e.data.size > 0) {
-                        recordedChunks.push(e.data);
-                    }
-                };
-                mediaRecorder.onstop = () => {
-                    saveRecordedVideo();
-                };
-                mediaRecorder.start();
-
-                let seconds = 0;
-                recordingInterval = setInterval(() => {
-                    seconds++;
-                    const mins = String(Math.floor(seconds / 60)).padStart(2, '0');
-                    const secs = String(seconds % 60).padStart(2, '0');
-                    recordingTime.textContent = `${mins}:${secs}`;
-                }, 1000);
-            } catch (err) {
-                console.error("Fallo al iniciar MediaRecorder:", err);
-                alert("La grabación de video no es compatible con este navegador.");
-                stopRecordingFlow();
-            }
-        }
-
-        function stopRecordingFlow() {
-            isRecording = false;
-            btnLiveRecord.classList.remove('recording');
-            recordingOverlay.classList.remove('active');
-            
-            if (recordingInterval) clearInterval(recordingInterval);
-            if (canvasDrawInterval) clearInterval(canvasDrawInterval);
-
-            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                mediaRecorder.stop();
-            }
-        }
-
-        function saveRecordedVideo() {
-            try {
-                let ext = 'webm';
-                let mimeType = 'video/webm';
-                if (MediaRecorder.isTypeSupported('video/mp4')) {
-                    ext = 'mp4';
-                    mimeType = 'video/mp4';
-                }
-                
-                const blob = new Blob(recordedChunks, { type: mimeType });
-                const videoUrl = URL.createObjectURL(blob);
-                
-                const cleanName = `RABOSETA_VIDEO_${Date.now()}`;
-                const fileName = `${cleanName}.${ext}`;
-
-                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-                if (isMobile) {
-                    openSaveModal(videoUrl, fileName, true, mimeType);
-                } else {
-                    const link = document.createElement('a');
-                    link.download = fileName;
-                    link.href = videoUrl;
-                    link.click();
-                }
-            } catch (e) {
-                console.error("Error saving video:", e);
-            }
-        }
 
         btnShare.addEventListener('click', async () => {
             try {
@@ -2353,37 +1976,13 @@
                 }
             };
 
-            // Selectores del modal de advertencia de mic
-            const micWarningModal = document.getElementById('mic-warning-modal');
-            const micModalClose = document.getElementById('mic-modal-close');
-            const btnMicModalOk = document.getElementById('btn-mic-modal-ok');
-
             recognition.onerror = (event) => {
                 console.error("Speech recognition error:", event.error);
                 if (event.error === 'not-allowed') {
                     shouldBeListening = false;
-                    micWarningModal.classList.add('active');
+                    if (micWarningModal) micWarningModal.classList.add('active');
                 }
             };
-
-            // Cerrar modal de mic
-            if (micModalClose) {
-                micModalClose.addEventListener('click', () => {
-                    micWarningModal.classList.remove('active');
-                });
-            }
-            if (btnMicModalOk) {
-                btnMicModalOk.addEventListener('click', () => {
-                    micWarningModal.classList.remove('active');
-                });
-            }
-            if (micWarningModal) {
-                micWarningModal.addEventListener('click', (e) => {
-                    if (e.target === micWarningModal) {
-                        micWarningModal.classList.remove('active');
-                    }
-                });
-            }
 
             recognition.onresult = (event) => {
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -2401,9 +2000,8 @@
 
         if (voiceIndicator) {
             voiceIndicator.addEventListener('click', () => {
-                const micWarningModal = document.getElementById('mic-warning-modal');
                 if (!hasSpeechSupport) {
-                    micWarningModal.classList.add('active');
+                    if (micWarningModal) micWarningModal.classList.add('active');
                     return;
                 }
                 if (!recognition) initVoiceRecognition();
@@ -2418,7 +2016,7 @@
                     try {
                         recognition.start();
                     } catch(e) {
-                        micWarningModal.classList.add('active');
+                        if (micWarningModal) micWarningModal.classList.add('active');
                     }
                 }
             });
