@@ -1,8 +1,0 @@
-# CámaraESP32 — Tabla de Particiones
-# Flash total: 16MB
-# Nombre,   Tipo, SubTipo, Offset,   Tamaño,   Flags
-nvs,         data, nvs,     0x9000,   0x6000,
-phy_init,    data, phy,     0xF000,   0x1000,
-factory,     app,  factory, 0x10000,  0x300000,
-coredump,    data, coredump,       ,  0x10000,
-storage,     data, spiffs,         , 0x4E0000,

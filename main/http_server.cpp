@@ -16,11 +16,7 @@ extern "C" esp_err_t main_trigger_capture(void);
 extern const uint8_t index_html_start[] asm("_binary_index_html_start");
 extern const uint8_t index_html_end[]   asm("_binary_index_html_end");
 
-extern const uint8_t styles_css_start[] asm("_binary_styles_css_start");
-extern const uint8_t styles_css_end[]   asm("_binary_styles_css_end");
 
-extern const uint8_t app_js_start[]     asm("_binary_app_js_start");
-extern const uint8_t app_js_end[]       asm("_binary_app_js_end");
 
 // ============================================================================
 // FUNCIONES AUXILIARES
@@ -45,19 +41,7 @@ static esp_err_t index_get_handler(httpd_req_t *req) {
     return ESP_OK;
 }
 
-static esp_err_t styles_get_handler(httpd_req_t *req) {
-    httpd_resp_set_type(req, "text/css");
-    const size_t len = styles_css_end - styles_css_start;
-    httpd_resp_send(req, (const char *)styles_css_start, len);
-    return ESP_OK;
-}
 
-static esp_err_t app_js_get_handler(httpd_req_t *req) {
-    httpd_resp_set_type(req, "application/javascript");
-    const size_t len = app_js_end - app_js_start;
-    httpd_resp_send(req, (const char *)app_js_start, len);
-    return ESP_OK;
-}
 
 // ============================================================================
 // HANDLERS DE LA API Y FOTOS
@@ -281,12 +265,7 @@ esp_err_t http_server_start(void) {
 
         httpd_uri_t uri_root = { .uri = "/", .method = HTTP_GET, .handler = index_get_handler, .user_ctx = NULL };
         httpd_register_uri_handler(server, &uri_root);
-        
-        httpd_uri_t uri_css = { .uri = "/styles.css", .method = HTTP_GET, .handler = styles_get_handler, .user_ctx = NULL };
-        httpd_register_uri_handler(server, &uri_css);
-        
-        httpd_uri_t uri_js = { .uri = "/app.js", .method = HTTP_GET, .handler = app_js_get_handler, .user_ctx = NULL };
-        httpd_register_uri_handler(server, &uri_js);
+
         
         httpd_uri_t uri_status = { .uri = "/api/status", .method = HTTP_GET, .handler = status_get_handler, .user_ctx = NULL };
         httpd_register_uri_handler(server, &uri_status);

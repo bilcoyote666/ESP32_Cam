@@ -31,6 +31,4 @@ idf_component_register(
 )
 
 target_add_binary_data(${COMPONENT_LIB} "../web-app/index.html" TEXT)
-target_add_binary_data(${COMPONENT_LIB} "../web-app/styles.css" TEXT)
-target_add_binary_data(${COMPONENT_LIB} "../web-app/app.js" TEXT)
 
