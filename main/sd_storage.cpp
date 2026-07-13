@@ -410,6 +410,11 @@ esp_err_t sd_delete_photo(const char* filename) {
 
     xSemaphoreTake(s_sd_mutex, portMAX_DELAY);
     int ret = remove(full_path);
+    if (ret != 0 && errno == ENOENT) {
+        // Fallback: intentar en la raíz de la tarjeta SD
+        snprintf(full_path, sizeof(full_path), "%s/%s", SD_MOUNT_POINT, filename);
+        ret = remove(full_path);
+    }
     xSemaphoreGive(s_sd_mutex);
 
     if (ret != 0) {

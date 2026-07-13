@@ -980,10 +980,6 @@
                 <span class="dot connected"></span>
                 <span class="status-text">ON</span>
             </div>
-            <div class="voice-status" id="voice-status" style="display: flex; align-items: center; gap: 6px; font-size: 0.85em; cursor: help; color: #aaa; margin-left: 15px; user-select: none;">
-                <span class="mic-dot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: #888; transition: background-color 0.3s, box-shadow 0.3s;"></span>
-                <span class="voice-text" style="font-weight: 500;">Voz Off</span>
-            </div>
             <div class="app-logo">RABOSETA CAM</div>
             <div class="system-badge">PRO</div>
         </header>
@@ -1878,39 +1874,34 @@
             btnDeleteSd.addEventListener('click', async () => {
                 if (!currentPhotoName) return;
                 
-                if (confirm(`¿Estás seguro de que deseas borrar permanentemente la foto "${currentPhotoName}" de la tarjeta MicroSD?`)) {
-                    try {
-                        btnDeleteSd.disabled = true;
-                        btnDeleteSd.style.opacity = '0.5';
-                        btnDeleteSd.textContent = "Eliminando de SD...";
+                try {
+                    btnDeleteSd.disabled = true;
+                    btnDeleteSd.style.opacity = '0.5';
+                    btnDeleteSd.textContent = "Eliminando...";
 
-                        const res = await fetch(`/api/delete?name=${encodeURIComponent(currentPhotoName)}`, {
-                            method: 'POST'
-                        });
+                    const res = await fetch(`/api/delete?name=${encodeURIComponent(currentPhotoName)}`, {
+                        method: 'POST'
+                    });
 
-                        if (res.ok) {
-                            alert("Foto eliminada correctamente.");
-                            switchView('gallery');
-                            fetchPhotoList();
-                        } else {
-                            alert("Error al borrar la foto de la tarjeta SD.");
-                        }
-                    } catch (e) {
-                        console.error("Delete photo error:", e);
-                        alert("Error de conexión al intentar borrar la foto.");
-                    } finally {
-                        btnDeleteSd.disabled = false;
-                        btnDeleteSd.style.opacity = '1';
-                        btnDeleteSd.innerHTML = `
-                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="3 6 5 6 21 6"></polyline>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                <line x1="10" y1="11" x2="10" y2="17"></line>
-                                <line x1="14" y1="11" x2="14" y2="17"></line>
-                            </svg>
-                            Borrar de MicroSD
-                        `;
-                    }
+                    // Siempre volvemos a la página principal de la galería
+                    switchView('gallery');
+                    fetchPhotoList();
+                } catch (e) {
+                    console.error("Delete photo error:", e);
+                    switchView('gallery');
+                    fetchPhotoList();
+                } finally {
+                    btnDeleteSd.disabled = false;
+                    btnDeleteSd.style.opacity = '1';
+                    btnDeleteSd.innerHTML = `
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                        Borrar de MicroSD
+                    `;
                 }
             });
         }
@@ -2082,20 +2073,27 @@
                         const resultText = event.results[i][0].transcript.trim().toLowerCase();
                         console.log("Transcripción de voz:", resultText);
                         
-                        if (resultText.includes("raboseta foto")) {
+                        // Adaptaciones acústicas para "Raboseta Foto"
+                        const hasRaboseta = resultText.includes("raboseta") || 
+                                           resultText.includes("rabozeta") || 
+                                           resultText.includes("roboseta") || 
+                                           resultText.includes("rabosetta") || 
+                                           resultText.includes("rabosa") ||
+                                           resultText.includes("vamos a esta") ||
+                                           resultText.includes("la buseta") ||
+                                           resultText.includes("la poseta");
+                        const hasFoto = resultText.includes("foto") || 
+                                        resultText.includes("photo") || 
+                                        resultText.includes("foco") ||
+                                        resultText.includes("dispara") || 
+                                        resultText.includes("captura");
+                                        
+                        if (hasRaboseta && hasFoto) {
                             triggerVoiceCapture();
                         }
                     }
                 }
             };
-
-            // Iniciar escucha permanente automáticamente
-            shouldBeListening = true;
-            try {
-                recognition.start();
-            } catch(e) {
-                console.error("Auto-start voice recognition failed:", e);
-            }
         }
 
         if (voiceStatus) {
@@ -2108,18 +2106,22 @@
         }
 
         async function triggerVoiceCapture() {
-            micDot.style.backgroundColor = '#ff9800'; // Orange
-            micDot.style.boxShadow = '0 0 12px #ff9800';
-            voiceText.textContent = '¡Capturando!';
+            if (micDot) {
+                micDot.style.backgroundColor = '#ff9800'; // Orange
+                micDot.style.boxShadow = '0 0 12px #ff9800';
+            }
+            if (voiceText) voiceText.textContent = '¡Capturando!';
 
             try {
                 if (isOfflineMode) {
                     alert("📸 ¡Foto simulada!");
                     setTimeout(() => {
                         if (isListening) {
-                            micDot.style.backgroundColor = '#4caf50';
-                            micDot.style.boxShadow = '0 0 8px #4caf50';
-                            voiceText.textContent = 'Voz On';
+                            if (micDot) {
+                                micDot.style.backgroundColor = '#4caf50';
+                                micDot.style.boxShadow = '0 0 8px #4caf50';
+                            }
+                            if (voiceText) voiceText.textContent = 'Voz On';
                         }
                     }, 1000);
                     return;
@@ -2131,25 +2133,31 @@
                     setTimeout(() => {
                         fetchPhotoList();
                         if (isListening) {
-                            micDot.style.backgroundColor = '#4caf50';
-                            micDot.style.boxShadow = '0 0 8px #4caf50';
-                            voiceText.textContent = 'Voz On';
+                            if (micDot) {
+                                micDot.style.backgroundColor = '#4caf50';
+                                micDot.style.boxShadow = '0 0 8px #4caf50';
+                            }
+                            if (voiceText) voiceText.textContent = 'Voz On';
                         }
                     }, 4000);
                 } else {
                     alert("Error al disparar la captura.");
                     if (isListening) {
-                        micDot.style.backgroundColor = '#4caf50';
-                        micDot.style.boxShadow = '0 0 8px #4caf50';
-                        voiceText.textContent = 'Voz On';
+                        if (micDot) {
+                            micDot.style.backgroundColor = '#4caf50';
+                            micDot.style.boxShadow = '0 0 8px #4caf50';
+                        }
+                        if (voiceText) voiceText.textContent = 'Voz On';
                     }
                 }
             } catch (e) {
                 console.error("Connection error during capture trigger:", e);
                 if (isListening) {
-                    micDot.style.backgroundColor = '#4caf50';
-                    micDot.style.boxShadow = '0 0 8px #4caf50';
-                    voiceText.textContent = 'Voz On';
+                    if (micDot) {
+                        micDot.style.backgroundColor = '#4caf50';
+                        micDot.style.boxShadow = '0 0 8px #4caf50';
+                    }
+                    if (voiceText) voiceText.textContent = 'Voz On';
                 }
             }
         }
@@ -2220,6 +2228,24 @@
             setupCarouselListeners();
             checkAuth();
             initVoiceRecognition();
+
+            // Iniciar escucha del micrófono tras el primer click o touch (gesto del usuario)
+            // Esto es requerido obligatoriamente por seguridad en navegadores móviles/escritorio
+            function startVoiceOnUserGesture() {
+                if (hasSpeechSupport && recognition && !isListening) {
+                    shouldBeListening = true;
+                    try {
+                        recognition.start();
+                        console.log("Micrófono iniciado por gesto del usuario.");
+                    } catch(e) {
+                        console.error("Error al iniciar micrófono por gesto:", e);
+                    }
+                }
+                document.removeEventListener('click', startVoiceOnUserGesture);
+                document.removeEventListener('touchstart', startVoiceOnUserGesture);
+            }
+            document.addEventListener('click', startVoiceOnUserGesture);
+            document.addEventListener('touchstart', startVoiceOnUserGesture);
         };
     </script>
 </body>
