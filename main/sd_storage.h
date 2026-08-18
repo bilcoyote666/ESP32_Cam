@@ -134,6 +134,18 @@ esp_err_t sd_get_space_info(uint64_t* free_bytes, uint64_t* total_bytes);
 int sd_generate_file_list_json(char* json_buf, size_t buf_size);
 
 /**
+ * @brief Adquiere el mutex de acceso a la tarjeta SD
+ * @param timeout_ms Tiempo máximo de espera en ms
+ * @return true si se obtuvo el mutex
+ */
+bool sd_lock(uint32_t timeout_ms);
+
+/**
+ * @brief Libera el mutex de acceso a la tarjeta SD
+ */
+void sd_unlock(void);
+
+/**
  * @brief Desmonta la MicroSD de forma segura
  */
 void sd_storage_deinit(void);

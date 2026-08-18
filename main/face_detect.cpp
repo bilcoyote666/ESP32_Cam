@@ -66,6 +66,10 @@ static void face_detect_task(void* pvParam) {
 #endif
 
     while (s_running) {
+#if !HAVE_ESP_WHO
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        continue;
+#else
         // Si está pausado, esperar
         if (s_paused) {
             vTaskDelay(pdMS_TO_TICKS(50));
@@ -81,13 +85,7 @@ static void face_detect_task(void* pvParam) {
 
         face_result_t result = {};
 
-#if HAVE_ESP_WHO
         // Análisis MTMN
-        // El modelo espera imagen en formato RGB888 o RGB565
-        // esp_camera en modo DETECT devuelve JPEG, necesitamos convertir
-        // Para QVGA con esp-who, configurar pixel_format = PIXFORMAT_RGB565
-        // y usar el dl_matrix3du_t apropiado
-
         std::list<dl::detect::result_t> detect_results =
             detect.infer((uint16_t*)fb->buf, {(int)fb->height, (int)fb->width, 3});
 
@@ -106,15 +104,6 @@ static void face_detect_task(void* pvParam) {
             ESP_LOGD(TAG, "Cara detectada: confianza=%.2f, pos=(%d,%d,%dx%d)",
                      result.confidence, result.x, result.y, result.width, result.height);
         }
-#else
-        // Sin esp-who: siempre false
-        result.detected   = false;
-        result.face_count = 0;
-        result.confidence = 0.0f;
-        // Simular detección periódica para pruebas (QUITAR en producción)
-        // static uint32_t stub_counter = 0;
-        // if (++stub_counter % 100 == 0) { result.detected = true; result.confidence = 0.9f; }
-#endif
 
         camera_free_frame(fb);
 
@@ -141,6 +130,7 @@ static void face_detect_task(void* pvParam) {
 
         // Ceder CPU brevemente para otras tareas
         taskYIELD();
+#endif
     }
 
     ESP_LOGI(TAG, "Tarea de detección terminada");

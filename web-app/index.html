@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Raboseta Cam Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Limelight&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         /* ============================================================================
            Raboseta Cam Studio - Premium CSS Design System
@@ -380,6 +383,9 @@
             position: relative;
             background-color: #050505;
             overflow: hidden;
+            min-height: 0;
+            display: flex;
+            align-items: stretch;
         }
 
         .photo-thumb-container img {
@@ -387,6 +393,7 @@
             height: 100%;
             object-fit: cover;
             pointer-events: none;
+            display: block;
         }
 
         .photo-info {
@@ -970,9 +977,199 @@
             flex-direction: column;
             gap: 10px;
         }
+
+        /* Botón de Seguridad WiFi en Header */
+        .btn-security {
+            background: rgba(255, 170, 0, 0.12);
+            border: 1px solid rgba(255, 170, 0, 0.3);
+            color: var(--accent-gold);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: var(--transition-smooth);
+            outline: none;
+        }
+        .btn-security:hover, .btn-security:active {
+            background: var(--accent-gold);
+            color: #000;
+        }
+
+        /* Teclado Virtual Interactivo */
+        .virtual-keyboard {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: #09090b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 8px;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        .vk-row {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .vk-key {
+            flex: 1;
+            min-height: 40px;
+            background: #18181b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #f4f4f5;
+            border-radius: 7px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.06s ease, background 0.06s ease, color 0.06s ease;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .vk-key:active, .vk-key.pressed {
+            background: var(--accent-gold) !important;
+            color: #000 !important;
+            transform: scale(0.92);
+            box-shadow: 0 0 10px rgba(255, 170, 0, 0.6);
+        }
+
+        .vk-special {
+            background: #27272a;
+            color: #a1a1aa;
+            font-size: 0.8rem;
+        }
+
+        .vk-special.active {
+            background: var(--accent-gold);
+            color: #000;
+            font-weight: 700;
+        }
+
+        .vk-space {
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        /* Splash Screen Style */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, #1c1c1f 0%, #09090b 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            opacity: 1;
+            visibility: visible;
+            cursor: pointer;
+            animation: splashAutoDismiss 0.5s ease 1.5s forwards;
+            transition: opacity 0.5s ease, visibility 0.5s;
+        }
+
+        .splash-screen.fade-out {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+
+        @keyframes splashAutoDismiss {
+            0% { opacity: 1; visibility: visible; }
+            99% { opacity: 0; visibility: visible; }
+            100% { opacity: 0; visibility: hidden; pointer-events: none; }
+        }
+
+        .splash-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            max-width: 320px;
+            animation: splashFadeIn 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .splash-logo {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(0 0 25px rgba(255, 170, 0, 0.35));
+            animation: logoPulse 3s infinite alternate ease-in-out;
+        }
+
+        .splash-title {
+            color: var(--accent-gold);
+            font-size: 2.25rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            margin-top: 0.5rem;
+            font-family: 'Limelight', sans-serif;
+            text-transform: uppercase;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .splash-loader {
+            width: 140px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-top: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .splash-loader::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 50%;
+            background: linear-gradient(90deg, var(--accent-gold), #ffcc66);
+            border-radius: 3px;
+            animation: splashLoading 2s infinite ease-in-out;
+        }
+
+        @keyframes splashFadeIn {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes logoPulse {
+            0% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(255, 170, 0, 0.25)); }
+            100% { transform: scale(1.04); filter: drop-shadow(0 0 35px rgba(255, 170, 0, 0.5)); }
+        }
+
+        @keyframes splashLoading {
+            0% { left: -50%; width: 30%; }
+            50% { width: 60%; }
+            100% { left: 120%; width: 30%; }
+        }
     </style>
 </head>
 <body>
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="splash-screen">
+        <div class="splash-content">
+            <img class="splash-logo" src="data:image/png;base64,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" alt="Fox Logo">
+            <h1 class="splash-title">Raboseta Cam</h1>
+            <div class="splash-loader"></div>
+        </div>
+    </div>
     <div class="app-container">
         <!-- Top Navigation / Status Bar -->
         <header class="status-bar">
@@ -981,7 +1178,16 @@
                 <span class="status-text">ON</span>
             </div>
             <div class="app-logo">RABOSETA CAM</div>
-            <div class="system-badge">PRO</div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button id="btn-security" class="btn-security" title="Cambiar Contraseña WiFi">
+                    <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <span>WiFi Pass</span>
+                </button>
+                <div class="system-badge">PRO</div>
+            </div>
         </header>
 
         <!-- Main Body Content -->
@@ -1151,7 +1357,7 @@
 
                         <!-- D. Action Buttons -->
                         <div class="action-footer" style="display: flex; flex-direction: column; gap: 12px;">
-                            <button id="btn-download" class="btn-save-phone">Save to phone</button>
+                            <button id="btn-download" class="btn-save-phone">Guardar Foto</button>
                             <div class="btn-row-secondary">
                                 <button id="btn-share" class="btn-dark-action">
                                     <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -1190,62 +1396,165 @@
     <div id="save-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
-                <h3>Guardar en Galería</h3>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--accent-gold)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                    <h3 style="margin: 0; color: var(--accent-gold); font-size: 1.1rem;">Guardar en Galería de Fotos</h3>
+                </div>
                 <button id="modal-close" class="modal-close-btn">&times;</button>
             </div>
             <div class="modal-body">
-                <p class="modal-instruction">
-                    <strong>📱 Para guardar en tu galería:</strong><br>
-                    Mantén pulsada la imagen de abajo y selecciona <span class="highlight">"Guardar en Fotos"</span> (iOS/iPhone) o <span class="highlight">"Descargar imagen"</span> (Android).
-                </p>
-                <div class="modal-image-container">
-                    <img id="modal-preview-img" alt="Vista previa para guardar">
+                <!-- Indicador visual destacado para móvil -->
+                <div class="gallery-save-banner" style="background: linear-gradient(135deg, rgba(230,153,0,0.18), rgba(255,255,255,0.05)); border: 1px solid var(--accent-gold); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; display: flex; align-items: center; gap: 12px;">
+                    <div style="font-size: 1.8rem; line-height: 1;">👆</div>
+                    <div style="font-size: 0.88rem; line-height: 1.4; color: white;">
+                        <strong>Para guardar en tu Carrete / Galería:</strong><br>
+                        <span style="color: var(--accent-gold); font-weight: 600;">Mantén pulsada la foto</span> de abajo y toca <span style="background: rgba(255,255,255,0.2); padding: 1px 6px; border-radius: 4px; font-weight: 700;">«Guardar en Fotos»</span>.
+                    </div>
                 </div>
-                <div class="modal-actions">
-                    <button id="btn-modal-download-raw" class="btn-primary-accent">Descargar archivo directo</button>
+
+                <div class="modal-image-container" style="position: relative; border-radius: 12px; overflow: hidden; border: 2px solid rgba(255,255,255,0.2); background: #000; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.6); margin-bottom: 14px;">
+                    <img id="modal-preview-img" alt="Foto procesada para guardar" style="max-width: 100%; max-height: 50vh; object-fit: contain; display: block; margin: 0 auto; -webkit-touch-callout: default !important; -webkit-user-select: auto !important; user-select: auto !important; pointer-events: auto !important; cursor: pointer;">
+                </div>
+
+                <div class="modal-actions" style="display: flex; flex-direction: column; gap: 10px;">
+                    <button id="btn-modal-open-tab" class="btn-primary-accent" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; font-weight: 700; border-radius: 12px; cursor: pointer;">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                            <polyline points="15 3 21 3 21 9"></polyline>
+                            <line x1="10" y1="14" x2="21" y2="3"></line>
+                        </svg>
+                        <span>Abrir imagen a pantalla completa</span>
+                    </button>
+                    <a id="btn-modal-download-raw" class="btn-dark-action" style="display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; width: 100%; padding: 10px; border-radius: 12px; box-sizing: border-box; font-size: 0.82rem; opacity: 0.85;" href="#" download target="_blank">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span>Descargar archivo original (.jpg)</span>
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal de Advertencia de Micrófono (HTTP) -->
-    <div id="mic-warning-modal" class="modal-overlay">
-        <div class="modal-card">
+    <!-- Modal para Configuración / Teclado de Contraseña WiFi -->
+    <div id="password-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 480px; width: 95%;">
             <div class="modal-header">
-                <h3>Configuración de Voz</h3>
-                <button id="mic-modal-close" class="modal-close-btn">&times;</button>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--accent-gold)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <h3 style="margin: 0; color: var(--accent-gold); font-size: 1.05rem;">Seguridad WiFi — Contraseña</h3>
+                </div>
+                <button id="pwd-modal-close" class="modal-close-btn">&times;</button>
             </div>
-            <div class="modal-body">
-                <div class="modal-instruction" style="background: rgba(239, 68, 68, 0.08); border-left-color: #ef4444; color: #f87171; border-radius: 6px; padding: 12px; margin-bottom: 15px;">
-                    <strong>⚠️ Micrófono Bloqueado por Seguridad:</strong><br>
-                    Los navegadores (Chrome, Safari, Firefox) bloquean el micrófono en conexiones HTTP locales (`http://192.168.4.1`) por seguridad.
+            <div class="modal-body" style="padding: 14px;">
+                <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 8px 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.82rem; color: var(--text-gray);">Red WiFi Cámara:</span>
+                    <strong style="color: white; font-family: monospace; font-size: 0.92rem;">Raboseta Cam</strong>
                 </div>
-                <p style="color: var(--text-gray); font-size: 0.85rem; line-height: 1.5; margin-bottom: 15px;">
-                    Para habilitar el comando por voz <strong>"Raboseta Foto"</strong> sin configurar nada, sigue esta guía según tu sistema:
-                </p>
-                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
-                    <div style="background: #27272a; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
-                        <strong style="color: white; font-size: 0.85rem;">En Google Chrome (Android / PC)</strong>
-                        <p style="color: var(--text-gray); font-size: 0.8rem; margin-top: 4px; line-height: 1.4;">
-                            1. Abre una pestaña y ve a:<br>
-                            <code style="background: #000; padding: 1px 4px; border-radius: 3px; color: #f87171; font-size: 0.75rem; word-break: break-all;">chrome://flags/#unsafely-treat-insecure-origin-as-secure</code><br>
-                            2. Escribe <code style="background: #000; padding: 1px 4px; border-radius: 3px; font-size: 0.75rem;">http://192.168.4.1</code> en la casilla.<br>
-                            3. Cambia el estado a <strong>Enabled</strong> y dale a <strong>Relaunch</strong>.
-                        </p>
-                    </div>
-                    <div style="background: #27272a; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
-                        <strong style="color: white; font-size: 0.85rem;">En Apple Safari (iOS / iPhone)</strong>
-                        <p style="color: var(--text-gray); font-size: 0.8rem; margin-top: 4px; line-height: 1.4;">
-                            Las políticas de iOS son muy estrictas en redes locales. Para usar la voz de forma óptima en iPhone, es necesario abrir la app en un navegador web convencional con soporte de origen seguro o configurar un certificado TLS.
-                        </p>
+
+                <!-- Input Display con Ojo y Borrar -->
+                <div class="pwd-display-wrapper" style="position: relative; margin-bottom: 8px;">
+                    <input type="password" id="vk-password-input" class="vk-input" placeholder="Escribe la contraseña..." autocomplete="off" style="width: 100%; padding: 10px 72px 10px 12px; background: #000; border: 2px solid var(--accent-gold); border-radius: 9px; color: #fff; font-family: monospace; font-size: 1.1rem; letter-spacing: 1.5px; outline: none; box-sizing: border-box;">
+                    <div style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 6px;">
+                        <button type="button" id="btn-vk-toggle-eye" style="background: none; border: none; color: var(--text-gray); cursor: pointer; padding: 4px; display: flex; align-items: center;" title="Ver/Ocultar contraseña">
+                            <svg id="eye-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                        <button type="button" id="btn-vk-clear" style="background: none; border: none; color: #ef4444; font-size: 1.15rem; cursor: pointer; padding: 2px 4px; line-height: 1;" title="Borrar todo">⨉</button>
                     </div>
                 </div>
-                <div class="modal-actions">
-                    <button id="btn-mic-modal-ok" class="btn-primary-accent">Entendido</button>
+
+                <div id="pwd-status-msg" style="font-size: 0.78rem; margin-bottom: 10px; min-height: 16px; text-align: center; color: var(--text-gray);">
+                    Mínimo 8 caracteres (WPA2)
+                </div>
+
+                <!-- Teclado Virtual Interactivo -->
+                <div class="virtual-keyboard" id="virtual-keyboard">
+                    <!-- Fila 1: Números -->
+                    <div class="vk-row">
+                        <button class="vk-key" data-key="1">1</button>
+                        <button class="vk-key" data-key="2">2</button>
+                        <button class="vk-key" data-key="3">3</button>
+                        <button class="vk-key" data-key="4">4</button>
+                        <button class="vk-key" data-key="5">5</button>
+                        <button class="vk-key" data-key="6">6</button>
+                        <button class="vk-key" data-key="7">7</button>
+                        <button class="vk-key" data-key="8">8</button>
+                        <button class="vk-key" data-key="9">9</button>
+                        <button class="vk-key" data-key="0">0</button>
+                    </div>
+                    <!-- Fila 2: QWERTY -->
+                    <div class="vk-row" id="vk-row-letters-1">
+                        <button class="vk-key" data-key="q">q</button>
+                        <button class="vk-key" data-key="w">w</button>
+                        <button class="vk-key" data-key="e">e</button>
+                        <button class="vk-key" data-key="r">r</button>
+                        <button class="vk-key" data-key="t">t</button>
+                        <button class="vk-key" data-key="y">y</button>
+                        <button class="vk-key" data-key="u">u</button>
+                        <button class="vk-key" data-key="i">i</button>
+                        <button class="vk-key" data-key="o">o</button>
+                        <button class="vk-key" data-key="p">p</button>
+                    </div>
+                    <!-- Fila 3: ASDFGHJKL -->
+                    <div class="vk-row" id="vk-row-letters-2">
+                        <button class="vk-key" data-key="a">a</button>
+                        <button class="vk-key" data-key="s">s</button>
+                        <button class="vk-key" data-key="d">d</button>
+                        <button class="vk-key" data-key="f">f</button>
+                        <button class="vk-key" data-key="g">g</button>
+                        <button class="vk-key" data-key="h">h</button>
+                        <button class="vk-key" data-key="j">j</button>
+                        <button class="vk-key" data-key="k">k</button>
+                        <button class="vk-key" data-key="l">l</button>
+                    </div>
+                    <!-- Fila 4: Shift, ZXCVBNM, Backspace -->
+                    <div class="vk-row" id="vk-row-letters-3">
+                        <button class="vk-key vk-special" id="vk-btn-shift" style="flex: 1.3;">⇧ Mayús</button>
+                        <button class="vk-key" data-key="z">z</button>
+                        <button class="vk-key" data-key="x">x</button>
+                        <button class="vk-key" data-key="c">c</button>
+                        <button class="vk-key" data-key="v">v</button>
+                        <button class="vk-key" data-key="b">b</button>
+                        <button class="vk-key" data-key="n">n</button>
+                        <button class="vk-key" data-key="m">m</button>
+                        <button class="vk-key vk-special vk-backspace" id="vk-btn-backspace" style="flex: 1.3;">⌫</button>
+                    </div>
+                    <!-- Fila 5: Símbolos, Espacio, Default -->
+                    <div class="vk-row">
+                        <button class="vk-key vk-special" id="vk-btn-sym" style="flex: 1.3;">.?123</button>
+                        <button class="vk-key vk-space" data-key=" " style="flex: 3.2;">Espacio</button>
+                        <button class="vk-key vk-special" id="vk-btn-default" style="flex: 1.5; font-size: 0.75rem;" title="Restaurar a rabosetacam">Default</button>
+                    </div>
+                </div>
+
+                <!-- Botón de Guardar Contraseña -->
+                <div style="margin-top: 14px;">
+                    <button id="btn-save-password" class="btn-primary-accent" style="width: 100%; padding: 12px; font-weight: 700; border-radius: 10px; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <svg viewBox="0 0 24 24" width="17" height="17" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        <span>Guardar Contraseña WiFi</span>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+
+
 
     <!-- Hidden element for loading image in full size -->
     <img id="source-image" style="display:none;" crossorigin="anonymous">
@@ -1275,32 +1584,7 @@
         const btnPrev = document.getElementById('btn-prev');
         const btnNext = document.getElementById('btn-next');
 
-        // Mic warning modal elements (declared globally so event listeners can be attached on startup)
-        const micWarningModal = document.getElementById('mic-warning-modal');
-        const micModalClose = document.getElementById('mic-modal-close');
-        const btnMicModalOk = document.getElementById('btn-mic-modal-ok');
 
-        // Eventos para cerrar el modal de micrófono (siempre activos)
-        if (micModalClose) {
-            micModalClose.addEventListener('click', () => {
-                micWarningModal.classList.remove('active');
-                localStorage.setItem('voice_warning_dismissed', 'true');
-            });
-        }
-        if (btnMicModalOk) {
-            btnMicModalOk.addEventListener('click', () => {
-                micWarningModal.classList.remove('active');
-                localStorage.setItem('voice_warning_dismissed', 'true');
-            });
-        }
-        if (micWarningModal) {
-            micWarningModal.addEventListener('click', (e) => {
-                if (e.target === micWarningModal) {
-                    micWarningModal.classList.remove('active');
-                    localStorage.setItem('voice_warning_dismissed', 'true');
-                }
-            });
-        }
 
         // Editor elements
         const btnBack = document.getElementById('btn-back');
@@ -1338,10 +1622,7 @@
         // Status
         const statusIndicator = document.getElementById('status-indicator');
 
-        // Voice Recognition elements
-        const voiceStatus = document.getElementById('voice-status');
-        const micDot = voiceStatus ? voiceStatus.querySelector('.mic-dot') : null;
-        const voiceText = voiceStatus ? voiceStatus.querySelector('.voice-text') : null;
+
 
         let isSetupMode = false;
         let currentPhotoName = "";
@@ -1372,6 +1653,17 @@
             updateStatusIndicator(true, "ON");
             switchView('gallery');
             fetchPhotoList();
+            try {
+                const res = await fetch('/api/status');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.wifi_pass) {
+                        currentWifiPass = data.wifi_pass;
+                    }
+                }
+            } catch (e) {
+                console.warn("Status fetch error:", e);
+            }
         }
 
         function updateStatusIndicator(connected, text) {
@@ -1530,7 +1822,8 @@
 
                 card.innerHTML = `
                     <div class="photo-thumb-container">
-                        <img data-src="${photoUrl}" alt="${f.name}">
+                        <img data-src="${photoUrl}" alt="${f.name}" loading="lazy"
+                             onerror="if(!this.dataset.retried){this.dataset.retried='1';setTimeout(()=>{this.src=this.dataset.src+'&r='+Date.now();},2000);}">
                     </div>
                     <div class="photo-info">
                         <div class="name">${f.name}</div>
@@ -1599,8 +1892,11 @@
                 
                 if (isVisible) {
                     const img = card.querySelector('img');
-                    if (img && img.dataset.src && img.getAttribute('src') !== img.dataset.src) {
-                        img.src = img.dataset.src;
+                    if (img && img.dataset.src) {
+                        const targetSrc = img.dataset.src;
+                        if (!img.src || img.getAttribute('src') === null || !img.src.includes(img.dataset.src.split('&t=')[0])) {
+                            img.src = targetSrc;
+                        }
                     }
                 }
             });
@@ -1906,261 +2202,136 @@
             });
         }
 
-        // Abre modal para imágenes
-        function openSaveModal(dataUrl, fileName) {
-            modalPreviewImg.src = dataUrl;
+        let currentModalBlob = null;
+        let currentModalBlobUrl = null;
+        let currentModalFileName = "";
 
-            // Configurar el botón de descarga manual
-            btnModalDownloadRaw.onclick = () => {
-                const link = document.createElement('a');
-                link.download = fileName;
-                link.href = dataUrl;
-                link.click();
-            };
+        // Abre modal para imágenes (fallback o selección manual)
+        function openSaveModal(blob, fileName) {
+            currentModalBlob = blob;
+            currentModalFileName = fileName;
 
-            // Mostrar el modal
+            if (currentModalBlobUrl) {
+                URL.revokeObjectURL(currentModalBlobUrl);
+            }
+            currentModalBlobUrl = URL.createObjectURL(blob);
+            modalPreviewImg.src = currentModalBlobUrl;
+
+            const downloadRawLink = document.getElementById('btn-modal-download-raw');
+            if (downloadRawLink) {
+                if (currentPhotoName) {
+                    downloadRawLink.href = `/photo?name=${encodeURIComponent(currentPhotoName)}&download=1`;
+                    downloadRawLink.download = fileName;
+                } else {
+                    downloadRawLink.href = currentModalBlobUrl;
+                    downloadRawLink.download = fileName;
+                }
+            }
+
             saveModal.classList.add('active');
         }
 
-        btnDownload.addEventListener('click', () => {
+        async function triggerSaveAction() {
             try {
                 // Forzar dibujado del filtro en el canvas antes de exportar
                 renderCanvas(true);
 
-                const quality = 0.92;
-                const dataUrl = canvas.toDataURL('image/jpeg', quality);
-                
                 const cleanName = currentPhotoName ? currentPhotoName.replace('.jpg', '') : 'RABOSETA_CAM';
                 const frameTag = currentFrame !== 'none' ? `_framed_${currentFrame}` : '';
                 const presetTag = currentPreset !== 'natural' ? `_${currentPreset}` : '';
                 const fileName = `${cleanName}${presetTag}${frameTag}.jpg`;
 
-                // Detectar si es dispositivo móvil
-                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                // Detectar si es dispositivo móvil (iPhone, iPad, Android)
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                                 (navigator.maxTouchPoints && navigator.maxTouchPoints > 2 && /Macintosh/.test(navigator.userAgent));
 
-                if (isMobile) {
-                    openSaveModal(dataUrl, fileName);
-                } else {
-                    // Descarga directa normal en PC
-                    const link = document.createElement('a');
-                    link.download = fileName;
-                    link.href = dataUrl;
-                    link.click();
+                const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.94));
+                renderCanvas(false);
+
+                if (!blob) {
+                    alert("Error al preparar la imagen para guardar.");
+                    return;
                 }
 
-                // Restaurar vista visual del canvas
-                renderCanvas(false);
+                // 1. En iPhone y Android: Lanzar Web Share API nativa para guardar en Fotos / Galería
+                if (isMobile && navigator.canShare) {
+                    const file = new File([blob], fileName, { type: 'image/jpeg' });
+                    if (navigator.canShare({ files: [file] })) {
+                        try {
+                            await navigator.share({
+                                files: [file],
+                                title: 'Raboseta Cam'
+                            });
+                            return; // Guardado exitoso a través de la hoja nativa
+                        } catch (err) {
+                            if (err.name === 'AbortError') {
+                                // El usuario simplemente cerró la ventana de compartir
+                                return;
+                            }
+                            console.warn("Share API fallback:", err);
+                        }
+                    }
+                    // Si no permite compartir el archivo directamente, abrir modal
+                    openSaveModal(blob, fileName);
+                    return;
+                }
+
+                // 2. En Mac y PC: Descarga directa a la carpeta de Descargas
+                const blobUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.download = fileName;
+                link.href = blobUrl;
+                document.body.appendChild(link);
+                link.click();
+                setTimeout(() => {
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(blobUrl);
+                }, 250);
+
             } catch (e) {
-                console.error("Fallo al descargar la imagen:", e);
-                alert("Error al descargar la imagen en este navegador.");
+                console.error("Fallo al guardar la imagen:", e);
+                alert("Error al procesar la imagen.");
                 renderCanvas(false);
             }
-        });
+        }
+
+        btnDownload.addEventListener('click', triggerSaveAction);
+
+        const btnModalOpenTab = document.getElementById('btn-modal-open-tab');
+        if (btnModalOpenTab) {
+            btnModalOpenTab.addEventListener('click', () => {
+                if (currentModalBlobUrl) {
+                    window.open(currentModalBlobUrl, '_blank');
+                }
+            });
+        }
 
         // Eventos para cerrar el modal de guardado
         modalClose.addEventListener('click', () => {
             saveModal.classList.remove('active');
+            if (currentModalBlobUrl) {
+                URL.revokeObjectURL(currentModalBlobUrl);
+                currentModalBlobUrl = null;
+            }
             modalPreviewImg.src = "";
+            currentModalBlob = null;
         });
 
         saveModal.addEventListener('click', (e) => {
             if (e.target === saveModal) {
                 saveModal.classList.remove('active');
+                if (currentModalBlobUrl) {
+                    URL.revokeObjectURL(currentModalBlobUrl);
+                    currentModalBlobUrl = null;
+                }
                 modalPreviewImg.src = "";
+                currentModalBlob = null;
             }
         });
 
-        btnShare.addEventListener('click', async () => {
-            try {
-                // Forzar dibujado del filtro en el canvas antes de exportar
-                renderCanvas(true);
+        btnShare.addEventListener('click', triggerSaveAction);
 
-                const quality = 0.92;
-                canvas.toBlob(async (blob) => {
-                    if (!blob) {
-                        alert("Error generando el archivo para compartir.");
-                        renderCanvas(false);
-                        return;
-                    }
-                    const cleanName = currentPhotoName ? currentPhotoName.replace('.jpg', '') : 'RABOSETA_CAM';
-                    const file = new File([blob], `${cleanName}.jpg`, { type: 'image/jpeg' });
-                    
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        await navigator.share({
-                            files: [file],
-                            title: 'Raboseta Cam Studio',
-                            text: 'Mira esta foto que edité con mi Raboseta Cam'
-                        });
-                    } else {
-                        alert("Compartir directamente no está soportado en este navegador. Descarga la foto y compártela.");
-                    }
-                    renderCanvas(false);
-                }, 'image/jpeg', quality);
-            } catch (e) {
-                console.error("Sharing error:", e);
-                renderCanvas(false);
-            }
-        });
 
-        // ============================================================================
-        // VOICE TRIGGER SYSTEM (Web Speech API)
-        // ============================================================================
-        let recognition = null;
-        let isListening = false;
-        let shouldBeListening = false;
-        let hasSpeechSupport = true;
-
-        function initVoiceRecognition() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-                console.warn("Speech recognition not supported in this browser.");
-                hasSpeechSupport = false;
-                if (micDot) {
-                    micDot.style.backgroundColor = '#f44336'; // Red
-                    micDot.style.boxShadow = '0 0 8px #f44336';
-                }
-                if (voiceText) voiceText.textContent = 'Voz N/A';
-                
-                // Mostrar advertencia en carga si no se ha descartado previamente
-                if (micWarningModal && !localStorage.getItem('voice_warning_dismissed')) {
-                    micWarningModal.classList.add('active');
-                }
-                return;
-            }
-
-            recognition = new SpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = false;
-            recognition.lang = 'es-ES'; // Spanish
-
-            recognition.onstart = () => {
-                isListening = true;
-                if (micDot) {
-                    micDot.style.backgroundColor = '#4caf50'; // Green
-                    micDot.style.boxShadow = '0 0 8px #4caf50';
-                }
-                if (voiceText) voiceText.textContent = 'Voz On';
-                console.log("Speech recognition started.");
-            };
-
-            recognition.onend = () => {
-                isListening = false;
-                if (micDot) {
-                    micDot.style.backgroundColor = '#888'; // Grey
-                    micDot.style.boxShadow = 'none';
-                }
-                if (voiceText) voiceText.textContent = 'Voz Off';
-                console.log("Speech recognition ended.");
-                if (shouldBeListening) {
-                    try { recognition.start(); } catch(e) {}
-                }
-            };
-
-            recognition.onerror = (event) => {
-                console.error("Speech recognition error:", event.error);
-                if (event.error === 'not-allowed') {
-                    shouldBeListening = false;
-                    // Mostrar modal de aviso si no fue descartado
-                    if (micWarningModal && !localStorage.getItem('voice_warning_dismissed')) {
-                        micWarningModal.classList.add('active');
-                    }
-                }
-            };
-
-            recognition.onresult = (event) => {
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        const resultText = event.results[i][0].transcript.trim().toLowerCase();
-                        console.log("Transcripción de voz:", resultText);
-                        
-                        // Adaptaciones acústicas para "Raboseta Foto"
-                        const hasRaboseta = resultText.includes("raboseta") || 
-                                           resultText.includes("rabozeta") || 
-                                           resultText.includes("roboseta") || 
-                                           resultText.includes("rabosetta") || 
-                                           resultText.includes("rabosa") ||
-                                           resultText.includes("vamos a esta") ||
-                                           resultText.includes("la buseta") ||
-                                           resultText.includes("la poseta");
-                        const hasFoto = resultText.includes("foto") || 
-                                        resultText.includes("photo") || 
-                                        resultText.includes("foco") ||
-                                        resultText.includes("dispara") || 
-                                        resultText.includes("captura");
-                                        
-                        if (hasRaboseta && hasFoto) {
-                            triggerVoiceCapture();
-                        }
-                    }
-                }
-            };
-        }
-
-        if (voiceStatus) {
-            voiceStatus.addEventListener('click', () => {
-                // Al hacer clic, simplemente abrimos el modal de instrucciones
-                if (micWarningModal) {
-                    micWarningModal.classList.add('active');
-                }
-            });
-        }
-
-        async function triggerVoiceCapture() {
-            if (micDot) {
-                micDot.style.backgroundColor = '#ff9800'; // Orange
-                micDot.style.boxShadow = '0 0 12px #ff9800';
-            }
-            if (voiceText) voiceText.textContent = '¡Capturando!';
-
-            try {
-                if (isOfflineMode) {
-                    alert("📸 ¡Foto simulada!");
-                    setTimeout(() => {
-                        if (isListening) {
-                            if (micDot) {
-                                micDot.style.backgroundColor = '#4caf50';
-                                micDot.style.boxShadow = '0 0 8px #4caf50';
-                            }
-                            if (voiceText) voiceText.textContent = 'Voz On';
-                        }
-                    }, 1000);
-                    return;
-                }
-
-                const res = await fetch('/api/capture', { method: 'POST' });
-                if (res.ok) {
-                    console.log("Capture triggered successfully!");
-                    setTimeout(() => {
-                        fetchPhotoList();
-                        if (isListening) {
-                            if (micDot) {
-                                micDot.style.backgroundColor = '#4caf50';
-                                micDot.style.boxShadow = '0 0 8px #4caf50';
-                            }
-                            if (voiceText) voiceText.textContent = 'Voz On';
-                        }
-                    }, 4000);
-                } else {
-                    alert("Error al disparar la captura.");
-                    if (isListening) {
-                        if (micDot) {
-                            micDot.style.backgroundColor = '#4caf50';
-                            micDot.style.boxShadow = '0 0 8px #4caf50';
-                        }
-                        if (voiceText) voiceText.textContent = 'Voz On';
-                    }
-                }
-            } catch (e) {
-                console.error("Connection error during capture trigger:", e);
-                if (isListening) {
-                    if (micDot) {
-                        micDot.style.backgroundColor = '#4caf50';
-                        micDot.style.boxShadow = '0 0 8px #4caf50';
-                    }
-                    if (voiceText) voiceText.textContent = 'Voz On';
-                }
-            }
-        }
 
         // Carousel Arrow & Swipe Actions
         function setupCarouselListeners() {
@@ -2224,29 +2395,259 @@
             });
         }
 
-        window.onload = () => {
-            setupCarouselListeners();
-            checkAuth();
-            initVoiceRecognition();
+        // ============================================================================
+        // SEGURIDAD Y TECLADO VIRTUAL PARA CONTRASEÑA WIFI
+        // ============================================================================
+        const btnSecurity = document.getElementById('btn-security');
+        const passwordModal = document.getElementById('password-modal');
+        const pwdModalClose = document.getElementById('pwd-modal-close');
+        const vkPasswordInput = document.getElementById('vk-password-input');
+        const btnVkToggleEye = document.getElementById('btn-vk-toggle-eye');
+        const btnVkClear = document.getElementById('btn-vk-clear');
+        const btnVkShift = document.getElementById('vk-btn-shift');
+        const btnVkSym = document.getElementById('vk-btn-sym');
+        const btnVkBackspace = document.getElementById('vk-btn-backspace');
+        const btnVkDefault = document.getElementById('vk-btn-default');
+        const btnSavePassword = document.getElementById('btn-save-password');
+        const pwdStatusMsg = document.getElementById('pwd-status-msg');
 
-            // Iniciar escucha del micrófono tras el primer click o touch (gesto del usuario)
-            // Esto es requerido obligatoriamente por seguridad en navegadores móviles/escritorio
-            function startVoiceOnUserGesture() {
-                if (hasSpeechSupport && recognition && !isListening) {
-                    shouldBeListening = true;
-                    try {
-                        recognition.start();
-                        console.log("Micrófono iniciado por gesto del usuario.");
-                    } catch(e) {
-                        console.error("Error al iniciar micrófono por gesto:", e);
+        let isShiftActive = false;
+        let isSymbolsActive = false;
+        let currentWifiPass = "rabosetacam";
+
+        const letterKeys = ['q','w','e','r','t','y','u','i','o','p','a','s','d','f','g','h','j','k','l','z','x','c','v','b','n','m'];
+        const symbolKeys = ['!','@','#','$','%','&','*','-','_','+','=','?','/','.',',',':',';','(',')','[',']','{','}','<','>','~'];
+
+        function updateKeyboardDisplay() {
+            const keys = document.querySelectorAll('.virtual-keyboard .vk-key[data-key]');
+            keys.forEach(k => {
+                const rawKey = k.getAttribute('data-key');
+                if (rawKey === ' ') return; // Espacio
+                if (isSymbolsActive) {
+                    const idx = letterKeys.indexOf(rawKey.toLowerCase());
+                    if (idx !== -1 && idx < symbolKeys.length) {
+                        k.textContent = symbolKeys[idx];
+                        k.dataset.currentVal = symbolKeys[idx];
+                    } else {
+                        k.textContent = rawKey;
+                        k.dataset.currentVal = rawKey;
+                    }
+                } else {
+                    if (letterKeys.includes(rawKey.toLowerCase())) {
+                        const char = isShiftActive ? rawKey.toUpperCase() : rawKey.toLowerCase();
+                        k.textContent = char;
+                        k.dataset.currentVal = char;
+                    } else {
+                        k.textContent = rawKey;
+                        k.dataset.currentVal = rawKey;
                     }
                 }
-                document.removeEventListener('click', startVoiceOnUserGesture);
-                document.removeEventListener('touchstart', startVoiceOnUserGesture);
+            });
+
+            if (btnVkShift) {
+                btnVkShift.classList.toggle('active', isShiftActive);
             }
-            document.addEventListener('click', startVoiceOnUserGesture);
-            document.addEventListener('touchstart', startVoiceOnUserGesture);
-        };
+            if (btnVkSym) {
+                btnVkSym.classList.toggle('active', isSymbolsActive);
+                btnVkSym.textContent = isSymbolsActive ? "ABC" : ".?123";
+            }
+        }
+
+        // Listener para las teclas del teclado virtual
+        document.querySelectorAll('.virtual-keyboard .vk-key[data-key]').forEach(keyBtn => {
+            keyBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const keyVal = keyBtn.dataset.currentVal || keyBtn.dataset.key;
+                if (!keyVal) return;
+
+                // Animación visual de pulsación
+                keyBtn.classList.add('pressed');
+                setTimeout(() => keyBtn.classList.remove('pressed'), 100);
+
+                vkPasswordInput.value += keyVal;
+                updatePasswordStrengthDisplay();
+            });
+        });
+
+        // Shift
+        if (btnVkShift) {
+            btnVkShift.addEventListener('click', (e) => {
+                e.preventDefault();
+                isShiftActive = !isShiftActive;
+                updateKeyboardDisplay();
+            });
+        }
+
+        // Símbolos
+        if (btnVkSym) {
+            btnVkSym.addEventListener('click', (e) => {
+                e.preventDefault();
+                isSymbolsActive = !isSymbolsActive;
+                updateKeyboardDisplay();
+            });
+        }
+
+        // Backspace
+        if (btnVkBackspace) {
+            btnVkBackspace.addEventListener('click', (e) => {
+                e.preventDefault();
+                vkPasswordInput.value = vkPasswordInput.value.slice(0, -1);
+                updatePasswordStrengthDisplay();
+            });
+        }
+
+        // Limpiar
+        if (btnVkClear) {
+            btnVkClear.addEventListener('click', (e) => {
+                e.preventDefault();
+                vkPasswordInput.value = '';
+                updatePasswordStrengthDisplay();
+            });
+        }
+
+        // Default: rabosetacam
+        if (btnVkDefault) {
+            btnVkDefault.addEventListener('click', (e) => {
+                e.preventDefault();
+                vkPasswordInput.value = 'rabosetacam';
+                updatePasswordStrengthDisplay();
+            });
+        }
+
+        // Ver / Ocultar contraseña
+        if (btnVkToggleEye) {
+            btnVkToggleEye.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (vkPasswordInput.type === 'password') {
+                    vkPasswordInput.type = 'text';
+                    btnVkToggleEye.style.color = 'var(--accent-gold)';
+                } else {
+                    vkPasswordInput.type = 'password';
+                    btnVkToggleEye.style.color = 'var(--text-gray)';
+                }
+            });
+        }
+
+        function updatePasswordStrengthDisplay() {
+            const len = vkPasswordInput.value.length;
+            if (len === 0) {
+                pwdStatusMsg.textContent = "Mínimo 8 caracteres (WPA2)";
+                pwdStatusMsg.style.color = "var(--text-gray)";
+            } else if (len < 8) {
+                pwdStatusMsg.textContent = `Demasiado corta: ${len}/8 caracteres`;
+                pwdStatusMsg.style.color = "#ef4444";
+            } else {
+                pwdStatusMsg.textContent = `✓ Longitud válida (${len} caracteres)`;
+                pwdStatusMsg.style.color = "#22c55e";
+            }
+        }
+
+        vkPasswordInput.addEventListener('input', updatePasswordStrengthDisplay);
+
+        // Abrir modal de seguridad
+        if (btnSecurity) {
+            btnSecurity.addEventListener('click', () => {
+                vkPasswordInput.value = currentWifiPass || "rabosetacam";
+                updatePasswordStrengthDisplay();
+                updateKeyboardDisplay();
+                passwordModal.classList.add('active');
+            });
+        }
+
+        // Cerrar modal
+        if (pwdModalClose) {
+            pwdModalClose.addEventListener('click', () => {
+                passwordModal.classList.remove('active');
+            });
+        }
+
+        passwordModal.addEventListener('click', (e) => {
+            if (e.target === passwordModal) {
+                passwordModal.classList.remove('active');
+            }
+        });
+
+        // Guardar nueva contraseña
+        if (btnSavePassword) {
+            btnSavePassword.addEventListener('click', async () => {
+                const newPass = vkPasswordInput.value.trim();
+                if (newPass.length < 8) {
+                    alert("La contraseña debe tener al menos 8 caracteres para la red WiFi.");
+                    return;
+                }
+
+                btnSavePassword.disabled = true;
+                btnSavePassword.textContent = "Guardando...";
+
+                try {
+                    const res = await fetch('/api/password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password: newPass })
+                    });
+
+                    if (res.ok) {
+                        currentWifiPass = newPass;
+                        alert(`¡Contraseña guardada con éxito!\n\nNueva clave WiFi: ${newPass}\n\nLa red «Raboseta Cam» ha sido actualizada con tu nueva clave.`);
+                        passwordModal.classList.remove('active');
+                    } else {
+                        const err = await res.text();
+                        alert("Error al guardar contraseña: " + err);
+                    }
+                } catch (e) {
+                    console.error("Error guardando contraseña:", e);
+                    alert("Error de conexión con la cámara.");
+                } finally {
+                    btnSavePassword.disabled = false;
+                    btnSavePassword.innerHTML = `
+                        <svg viewBox="0 0 24 24" width="17" height="17" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        <span>Guardar Contraseña WiFi</span>
+                    `;
+                }
+            });
+        }
+
+        function dismissSplash() {
+            const splash = document.getElementById('splash-screen');
+            if (splash) {
+                splash.classList.add('fade-out');
+                setTimeout(() => { 
+                    if (splash && splash.parentNode) {
+                        splash.style.display = 'none'; 
+                    }
+                }, 500);
+            }
+        }
+
+        // Permitir descartar splash inmediatamente al tocar la pantalla
+        const splashEl = document.getElementById('splash-screen');
+        if (splashEl) {
+            splashEl.addEventListener('click', dismissSplash);
+            splashEl.addEventListener('touchstart', dismissSplash, { passive: true });
+        }
+
+        function initApp() {
+            try {
+                setupCarouselListeners();
+                checkAuth();
+            } catch (e) {
+                console.error("Init app error:", e);
+            }
+            setTimeout(dismissSplash, 1200);
+        }
+
+        // Failsafe absoluto de 2 segundos para ocultar splash
+        setTimeout(dismissSplash, 2000);
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
     </script>
 </body>
 </html>

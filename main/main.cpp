@@ -116,17 +116,9 @@ static void on_button_event(button_event_t event, void* user_data) {
         msg.burst_count = 3;
         xQueueSend(s_capture_queue, &msg, 0);
     } else if (event == BTN_EVENT_EXTRA_LONG_PRESS) {
-        ESP_LOGI(TAG, "Botón: pulsación MUY larga (10s) → reseteando contraseña");
+        ESP_LOGW(TAG, "Botón: pulsación MUY larga (10s) → reseteando contraseña");
         auth_clear_password();
-        // Opcional: parpadear el LED y reiniciar el ESP
-        for(int i = 0; i < 5; i++) {
-            led_update_from_state(SYS_STATE_ERROR_CAM); // Hace que parpadee rojo
-            vTaskDelay(pdMS_TO_TICKS(200));
-            led_update_from_state(SYS_STATE_READY);
-            vTaskDelay(pdMS_TO_TICKS(200));
-        }
-        ESP_LOGI(TAG, "Reiniciando el sistema...");
-        esp_restart();
+        led_update_from_state(SYS_STATE_ERROR_CAM);
     }
 }
 
@@ -203,11 +195,16 @@ static void capture_task(void* pvParam) {
                 ESP_LOGW(TAG, "AF error — capturando sin AF");
             }
 
-            // 4. Capturar frame JPEG
+            // 4. Capturar frame JPEG con destello de Flash LED
             set_system_state(SYS_STATE_CAPTURING);
-            led_flash_confirm(1);  // Flash de confirmación
+            led_flash_on();
+            vTaskDelay(pdMS_TO_TICKS(40));  // Breve tiempo para que el LED de flash ilumine la escena
 
             camera_fb_t* fb = camera_capture_frame();
+
+            vTaskDelay(pdMS_TO_TICKS(100)); // Mantener destello para un efecto de flash visible
+            led_flash_off();
+
             if (!fb) {
                 ESP_LOGE(TAG, "Error capturando frame");
                 set_system_state(SYS_STATE_ERROR_CAM);
@@ -382,6 +379,8 @@ extern "C" void app_main(void) {
 
     set_system_state(SYS_STATE_DETECTING);
     led_set_pattern(LED_PATTERN_DETECTING);
+
+
 
     // -------------------------------------------------------------------------
     // Lanzar tarea de captura en Core 1

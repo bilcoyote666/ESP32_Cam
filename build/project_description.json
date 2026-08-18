@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "CamaraESP32",
-    "project_version":    "e1a84b2-dirty",
+    "project_version":    "5df15a3-dirty",
     "project_path":       "/Users/oscariglesias/Documents/Arduino/Camara",
     "idf_path":           "/Users/oscariglesias/esp/esp-idf",
     "build_dir":          "/Users/oscariglesias/Documents/Arduino/Camara/build",
@@ -835,7 +835,7 @@
             "managed_reqs": [],
             "managed_priv_reqs": [ "espressif__esp32-camera" ],
             "file": "/Users/oscariglesias/Documents/Arduino/Camara/build/esp-idf/main/libmain.a",
-            "sources": [ "/Users/oscariglesias/Documents/Arduino/Camara/main/main.cpp", "/Users/oscariglesias/Documents/Arduino/Camara/main/camera.cpp", "/Users/oscariglesias/Documents/Arduino/Camara/main/face_detect.cpp", "/Users/oscariglesias/Documents/Arduino/Camara/main/sd_storage.cpp", "/Users/oscariglesias/Documents/Arduino/Camara/main/wifi_ap.cpp", "/Users/oscariglesias/Documents/Arduino/Camara/main/http_server.cpp", "/Users/oscariglesias/Documents/Arduino/Camara/main/button.cpp", "/Users/oscariglesias/Documents/Arduino/Camara/main/led.cpp", "/Users/oscariglesias/Documents/Arduino/Camara/main/ble_transfer.cpp", "/Users/oscariglesias/Documents/Arduino/Camara/main/auth.cpp", "/Users/oscariglesias/Documents/Arduino/Camara/build/index.html.S", "/Users/oscariglesias/Documents/Arduino/Camara/build/styles.css.S", "/Users/oscariglesias/Documents/Arduino/Camara/build/app.js.S" ],
+            "sources": [ "/Users/oscariglesias/Documents/Arduino/Camara/main/main.cpp", "/Users/oscariglesias/Documents/Arduino/Camara/main/camera.cpp", "/Users/oscariglesias/Documents/Arduino/Camara/main/face_detect.cpp", "/Users/oscariglesias/Documents/Arduino/Camara/main/sd_storage.cpp", "/Users/oscariglesias/Documents/Arduino/Camara/main/wifi_ap.cpp", "/Users/oscariglesias/Documents/Arduino/Camara/main/http_server.cpp", "/Users/oscariglesias/Documents/Arduino/Camara/main/button.cpp", "/Users/oscariglesias/Documents/Arduino/Camara/main/led.cpp", "/Users/oscariglesias/Documents/Arduino/Camara/main/ble_transfer.cpp", "/Users/oscariglesias/Documents/Arduino/Camara/main/auth.cpp", "/Users/oscariglesias/Documents/Arduino/Camara/build/index.html.S" ],
             "include_dirs": [ "." ]
         },
         "mbedtls": {

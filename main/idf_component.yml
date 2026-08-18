@@ -5,3 +5,4 @@ dependencies:
   ## esp32-camera — Driver oficial para OV5640, OV2640, etc.
   espressif/esp32-camera:
     version: ">=2.0.0"
+

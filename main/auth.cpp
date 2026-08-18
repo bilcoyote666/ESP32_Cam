@@ -16,16 +16,25 @@ static char s_session_token[33] = {0};
 
 esp_err_t auth_init(void) {
     nvs_handle_t handle;
-    esp_err_t err = nvs_open(NVS_NAMESPACE, NVS_READONLY, &handle);
+    esp_err_t err = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &handle);
     if (err == ESP_OK) {
         size_t len = sizeof(s_password);
-        if (nvs_get_str(handle, NVS_KEY_PWD, s_password, &len) == ESP_OK) {
+        if (nvs_get_str(handle, NVS_KEY_PWD, s_password, &len) == ESP_OK && strlen(s_password) >= 8) {
             s_has_password = true;
-            ESP_LOGI(TAG, "Password loaded from NVS");
+            ESP_LOGI(TAG, "Password loaded from NVS: %s", s_password);
+        } else {
+            // Default password: rabosetacam
+            strncpy(s_password, "rabosetacam", sizeof(s_password) - 1);
+            nvs_set_str(handle, NVS_KEY_PWD, s_password);
+            nvs_commit(handle);
+            s_has_password = true;
+            ESP_LOGI(TAG, "Default password set: %s", s_password);
         }
         nvs_close(handle);
     } else {
-        ESP_LOGI(TAG, "No password set yet");
+        strncpy(s_password, "rabosetacam", sizeof(s_password) - 1);
+        s_has_password = true;
+        ESP_LOGI(TAG, "NVS unavailable, using default password: %s", s_password);
     }
 
     // Generate a random session token for this boot
@@ -36,6 +45,18 @@ esp_err_t auth_init(void) {
     snprintf(s_session_token, sizeof(s_session_token), "%08lx%08lx%08lx%08lx", 
              (long unsigned int)r1, (long unsigned int)r2, (long unsigned int)r3, (long unsigned int)r4);
     
+    return ESP_OK;
+}
+
+esp_err_t auth_get_password(char* out_pwd, size_t max_len) {
+    if (!out_pwd || max_len == 0) return ESP_ERR_INVALID_ARG;
+    if (!s_has_password) {
+        strncpy(out_pwd, "rabosetacam", max_len - 1);
+        out_pwd[max_len - 1] = 0;
+        return ESP_OK;
+    }
+    strncpy(out_pwd, s_password, max_len - 1);
+    out_pwd[max_len - 1] = 0;
     return ESP_OK;
 }
 

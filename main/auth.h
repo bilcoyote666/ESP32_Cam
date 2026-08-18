@@ -35,6 +35,11 @@ bool auth_verify_password(const char* pwd);
 esp_err_t auth_clear_password(void);
 
 /**
+ * @brief Get the current stored password
+ */
+esp_err_t auth_get_password(char* out_pwd, size_t max_len);
+
+/**
  * @brief Get the expected session token to send to the client upon login
  */
 const char* auth_get_session_token(void);

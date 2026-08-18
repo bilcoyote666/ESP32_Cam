@@ -131,48 +131,63 @@ static void blink_timer_cb(void* arg) {
 // API Pública
 // =============================================================================
 esp_err_t led_init(void) {
-    if (PIN_LED_STATUS == -1) {
-        ESP_LOGI(TAG, "LED desactivado en config.h (PIN_LED_STATUS = -1)");
-        return ESP_OK;
+    // 1. Configurar LED de estado si está definido
+    if (PIN_LED_STATUS != -1) {
+        ESP_LOGI(TAG, "Inicializando LED de estado en GPIO%d", PIN_LED_STATUS);
+        gpio_config_t io_conf = {};
+        io_conf.intr_type    = GPIO_INTR_DISABLE;
+        io_conf.mode         = GPIO_MODE_OUTPUT;
+        io_conf.pin_bit_mask = (1ULL << PIN_LED_STATUS);
+        io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+        io_conf.pull_up_en   = GPIO_PULLUP_DISABLE;
+
+        esp_err_t ret = gpio_config(&io_conf);
+        if (ret != ESP_OK) {
+            ESP_LOGE(TAG, "Error configurando GPIO LED estado");
+            return ret;
+        }
+        led_off();
+
+        // Crear timer para parpadeo de estado
+        esp_timer_create_args_t timer_args = {
+            .callback        = blink_timer_cb,
+            .arg             = NULL,
+            .dispatch_method = ESP_TIMER_TASK,
+            .name            = "led_blink",
+            .skip_unhandled_events = true,
+        };
+        ret = esp_timer_create(&timer_args, &s_blink_timer);
+        if (ret != ESP_OK) {
+            ESP_LOGE(TAG, "Error creando timer LED");
+            return ret;
+        }
     }
 
-    ESP_LOGI(TAG, "Inicializando LED de estado en GPIO%d", PIN_LED_STATUS);
+    // 2. Configurar LED de flash si está definido
+    if (PIN_LED_FLASH != -1) {
+        ESP_LOGI(TAG, "Inicializando LED de Flash en GPIO%d", PIN_LED_FLASH);
+        gpio_config_t flash_conf = {};
+        flash_conf.intr_type    = GPIO_INTR_DISABLE;
+        flash_conf.mode         = GPIO_MODE_OUTPUT;
+        flash_conf.pin_bit_mask = (1ULL << PIN_LED_FLASH);
+        flash_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+        flash_conf.pull_up_en   = GPIO_PULLUP_DISABLE;
 
-    // Configurar GPIO como salida
-    gpio_config_t io_conf = {};
-    io_conf.intr_type    = GPIO_INTR_DISABLE;
-    io_conf.mode         = GPIO_MODE_OUTPUT;
-    io_conf.pin_bit_mask = (1ULL << PIN_LED_STATUS);
-    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
-    io_conf.pull_up_en   = GPIO_PULLUP_DISABLE;
-
-    esp_err_t ret = gpio_config(&io_conf);
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Error configurando GPIO LED");
-        return ret;
-    }
-    led_off();
-
-    // Crear timer para parpadeo
-    esp_timer_create_args_t timer_args = {
-        .callback        = blink_timer_cb,
-        .arg             = NULL,
-        .dispatch_method = ESP_TIMER_TASK,
-        .name            = "led_blink",
-        .skip_unhandled_events = true,
-    };
-    ret = esp_timer_create(&timer_args, &s_blink_timer);
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Error creando timer LED");
-        return ret;
+        esp_err_t ret = gpio_config(&flash_conf);
+        if (ret != ESP_OK) {
+            ESP_LOGE(TAG, "Error configurando GPIO LED Flash");
+            return ret;
+        }
+        led_flash_off();
     }
 
-    ESP_LOGI(TAG, "LED inicializado");
+    ESP_LOGI(TAG, "LEDs inicializados correctamente");
     return ESP_OK;
 }
 
 void led_set_pattern(led_pattern_t pattern) {
     if (s_current_pattern == pattern) return;
+    if (!s_blink_timer) return;
 
     // Parar el timer actual
     esp_timer_stop(s_blink_timer);
@@ -211,7 +226,27 @@ void led_flash_confirm(uint8_t flashes) {
         vTaskDelay(pdMS_TO_TICKS(60));
     }
     // Restaurar patrón anterior
-    esp_timer_start_once(s_blink_timer, 10 * 1000ULL);
+    if (s_blink_timer) {
+        esp_timer_start_once(s_blink_timer, 10 * 1000ULL);
+    }
+}
+
+void led_flash_on(void) {
+    if (PIN_LED_FLASH != -1) {
+        gpio_set_level((gpio_num_t)PIN_LED_FLASH, 1);
+    }
+}
+
+void led_flash_off(void) {
+    if (PIN_LED_FLASH != -1) {
+        gpio_set_level((gpio_num_t)PIN_LED_FLASH, 0);
+    }
+}
+
+void led_trigger_flash(uint32_t duration_ms) {
+    led_flash_on();
+    vTaskDelay(pdMS_TO_TICKS(duration_ms));
+    led_flash_off();
 }
 
 void led_deinit(void) {
@@ -221,5 +256,7 @@ void led_deinit(void) {
         s_blink_timer = NULL;
     }
     led_off();
-    ESP_LOGI(TAG, "LED deinicializado");
+    led_flash_off();
+    ESP_LOGI(TAG, "LEDs deinicializados");
 }
+

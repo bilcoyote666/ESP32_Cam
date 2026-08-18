@@ -28,21 +28,21 @@
 
 // Líneas de datos DVP (8 bits)
 #define CAM_PIN_D7           48
-#define CAM_PIN_D6           11
-#define CAM_PIN_D5           12
-#define CAM_PIN_D4           14
-#define CAM_PIN_D3           16
-#define CAM_PIN_D2           18
-#define CAM_PIN_D1           17
-#define CAM_PIN_D0           15
+#define CAM_PIN_D6           12
+#define CAM_PIN_D5           14
+#define CAM_PIN_D4           16
+#define CAM_PIN_D3           18
+#define CAM_PIN_D2           17
+#define CAM_PIN_D1           15
+#define CAM_PIN_D0           11
 
 // Sincronización DVP
 #define CAM_PIN_VSYNC        38
 #define CAM_PIN_HREF         47
 #define CAM_PIN_PCLK         13
 
-// Frecuencia clock del sensor (OV5640 acepta 6-27 MHz)
-#define CAM_XCLK_FREQ_HZ     20000000  // 20 MHz — óptimo para OV5640
+// Frecuencia clock del sensor (16 MHz o 20 MHz para OV2640 en XIAO Sense)
+#define CAM_XCLK_FREQ_HZ     16000000  // 16 MHz — óptimo y estable para OV2640 sin jitter DMA
 
 // Modo SPI para XIAO ESP32S3 Sense
 #define SD_SPI_PIN_CS        21
@@ -53,8 +53,9 @@
 // =============================================================================
 // PINES — BOTÓN Y LED
 // =============================================================================
-#define PIN_BTN_CAPTURE      1      // GPIO1 — Pin externo D0
-#define PIN_LED_STATUS       2      // GPIO2 — Pin externo D1
+#define PIN_BTN_CAPTURE      1      // GPIO1 — Pin externo D0 (Botón de disparo)
+#define PIN_LED_STATUS       2      // GPIO2 — Pin externo D1 (LED de estado)
+#define PIN_LED_FLASH        3      // GPIO3 — Pin externo D2 (LED de Flash)
 
 // Tiempos del botón (milisegundos)
 #define BTN_DEBOUNCE_MS      20     // Tiempo de debounce
@@ -108,9 +109,10 @@
 #define SD_MAX_FILENAME_LEN  64
 
 // =============================================================================
-// CONFIGURACIÓN WIFI (Captive Portal)
+// CONFIGURACIÓN WIFI AP
 // =============================================================================
 #define WIFI_AP_SSID         DEVICE_NAME
+#define WIFI_AP_DEFAULT_PASS "rabosetacam"  // Contraseña por defecto (mínimo 8 caracteres)
 
 // =============================================================================
 // CONFIGURACIÓN BT CLASSIC (SPP)

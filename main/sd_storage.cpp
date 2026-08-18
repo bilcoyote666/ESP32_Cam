@@ -285,23 +285,6 @@ void sd_free_photo_list(photo_list_t* list) {
 }
 
 char* sd_list_files_json(void) {
-    DIR* dir = opendir(SD_DCIM_DIR);
-
-    ESP_LOGI(TAG, "Abriendo: %s", SD_DCIM_DIR);
-
-    if (!dir) {
-        ESP_LOGE(TAG, "ERROR: no se puede abrir el directorio");
-        return strdup("[]");
-    }
-
-    struct dirent *entry;
-
-    while ((entry = readdir(dir)) != NULL) {
-        ESP_LOGI(TAG, "Archivo: '%s'  tipo=%d", entry->d_name, entry->d_type);
-    }
-
-    closedir(dir); // He cambiado rewinddir por closedir para evitar una fuga de memoria
-
     photo_list_t list = {0};
     if (sd_list_photos(&list) != ESP_OK) {
         return strdup("[]");
@@ -322,7 +305,7 @@ char* sd_list_files_json(void) {
 
     strcpy(json, "[");
     for (uint32_t i = 0; i < list.count; i++) {
-        char item[128];
+        char item[256];
         snprintf(item, sizeof(item), "{\"name\":\"%s\",\"size\":%lu,\"date\":\"%s\"}%s", 
                  list.photos[i].filename, 
                  (unsigned long)list.photos[i].size_bytes, 
@@ -496,6 +479,17 @@ int sd_generate_file_list_json(char* json_buf, size_t buf_size) {
     return written;
 }
 
+bool sd_lock(uint32_t timeout_ms) {
+    if (!s_sd_mutex) return false;
+    return (xSemaphoreTake(s_sd_mutex, pdMS_TO_TICKS(timeout_ms)) == pdTRUE);
+}
+
+void sd_unlock(void) {
+    if (s_sd_mutex) {
+        xSemaphoreGive(s_sd_mutex);
+    }
+}
+
 // =============================================================================
 // Deinicialización
 // =============================================================================
@@ -513,3 +507,4 @@ void sd_storage_deinit(void) {
 
     ESP_LOGI(TAG, "MicroSD desmontada");
 }
+

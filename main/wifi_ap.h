@@ -12,6 +12,11 @@ extern "C" {
  */
 esp_err_t wifi_ap_init(void);
 
+/**
+ * @brief Update WiFi AP password dynamically.
+ */
+esp_err_t wifi_ap_set_password(const char* new_password);
+
 #ifdef __cplusplus
 }
 #endif

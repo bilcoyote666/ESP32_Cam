@@ -50,7 +50,7 @@ static const camera_config_t s_cam_config = {
     .jpeg_quality   = CAM_JPEG_QUALITY_CAPTURE,
     .fb_count       = CAM_FB_COUNT_DETECT,
     .fb_location    = CAMERA_FB_IN_PSRAM,   // Frame buffers en PSRAM
-    .grab_mode      = CAMERA_GRAB_WHEN_EMPTY,
+    .grab_mode      = CAMERA_GRAB_LATEST,
 };
 
 // =============================================================================
@@ -116,7 +116,7 @@ esp_err_t camera_init(void) {
         return ESP_OK;
     }
 
-    ESP_LOGI(TAG, "Inicializando OV5640...");
+    ESP_LOGI(TAG, "Inicializando sensor de cámara...");
 
     esp_err_t err = esp_camera_init(&s_cam_config);
     if (err != ESP_OK) {
@@ -131,27 +131,30 @@ esp_err_t camera_init(void) {
         return ESP_FAIL;
     }
 
-    // Verificar que es OV5640
     ESP_LOGI(TAG, "Sensor detectado: PID=0x%04X", sensor->id.PID);
 
-    // Configuración óptima para OV5640
-    sensor->set_brightness(sensor, 0);       // Brillo neutro
-    sensor->set_contrast(sensor, 0);         // Contraste neutro
-    sensor->set_saturation(sensor, 0);       // Saturación neutra
-    sensor->set_sharpness(sensor, 0);        // Nitidez neutra
-    sensor->set_whitebal(sensor, 1);         // Auto white balance ON
-    sensor->set_awb_gain(sensor, 1);         // AWB gain ON
-    sensor->set_exposure_ctrl(sensor, 1);    // AEC ON (auto exposición)
-    sensor->set_aec2(sensor, 1);             // AEC DSP ON (procesamiento avanzado para mejor luz)
-    sensor->set_gain_ctrl(sensor, 1);        // AGC ON (auto ganancia)
-    sensor->set_bpc(sensor, 0);              // Black pixel correction OFF
-    sensor->set_wpc(sensor, 1);              // White pixel correction ON
-    sensor->set_raw_gma(sensor, 1);          // Gamma correction ON
-    sensor->set_lenc(sensor, 1);             // Lens correction ON (uniformidad)
-    sensor->set_hmirror(sensor, 0);          // Sin espejo horizontal
-    sensor->set_vflip(sensor, 0);            // Sin volteo vertical
-    sensor->set_dcw(sensor, 1);              // Downscale crop window ON
-    sensor->set_colorbar(sensor, 0);         // Sin barra de color de prueba
+    // Configuración general del sensor
+    if (sensor->set_brightness) sensor->set_brightness(sensor, 0);
+    if (sensor->set_contrast) sensor->set_contrast(sensor, 0);
+    if (sensor->set_saturation) sensor->set_saturation(sensor, 0);
+    if (sensor->set_sharpness) sensor->set_sharpness(sensor, 0);
+    if (sensor->set_whitebal) sensor->set_whitebal(sensor, 1);
+    if (sensor->set_awb_gain) sensor->set_awb_gain(sensor, 1);
+    if (sensor->set_exposure_ctrl) sensor->set_exposure_ctrl(sensor, 1);
+    if (sensor->set_gain_ctrl) sensor->set_gain_ctrl(sensor, 1);
+    if (sensor->set_hmirror) sensor->set_hmirror(sensor, 0);
+    if (sensor->set_vflip) sensor->set_vflip(sensor, 0);
+    if (sensor->set_colorbar) sensor->set_colorbar(sensor, 0);
+
+    // Opciones avanzadas para OV5640 si aplica
+    if (sensor->id.PID == OV5640_PID) {
+        if (sensor->set_aec2) sensor->set_aec2(sensor, 1);
+        if (sensor->set_bpc) sensor->set_bpc(sensor, 0);
+        if (sensor->set_wpc) sensor->set_wpc(sensor, 1);
+        if (sensor->set_raw_gma) sensor->set_raw_gma(sensor, 1);
+        if (sensor->set_lenc) sensor->set_lenc(sensor, 1);
+        if (sensor->set_dcw) sensor->set_dcw(sensor, 1);
+    }
 
     // Forzar el modo a DETECT (QVGA) ya que iniciamos en modo CAPTURE
     sensor->set_framesize(sensor, CAM_FRAMESIZE_DETECT);
@@ -160,7 +163,7 @@ esp_err_t camera_init(void) {
     s_current_mode = CAMERA_MODE_DETECT;
     s_initialized  = true;
 
-    ESP_LOGI(TAG, "OV5640 inicializado correctamente en modo DETECT (QVGA)");
+    ESP_LOGI(TAG, "Cámara inicializada correctamente en modo DETECT (QVGA)");
     return ESP_OK;
 }
 
@@ -177,7 +180,7 @@ esp_err_t camera_set_mode(camera_mode_t mode) {
         sensor->set_quality(sensor, CAM_JPEG_QUALITY_DETECT);
     } else {
         ESP_LOGI(TAG, "Cambiando a modo CAPTURE (%s)",
-                 (CAM_FRAMESIZE_CAPTURE == FRAMESIZE_UXGA) ? "UXGA 1600x1200" : "5MP");
+                 (CAM_FRAMESIZE_CAPTURE == FRAMESIZE_UXGA) ? "UXGA 1600x1200" : "Resolución máxima");
         sensor->set_framesize(sensor, CAM_FRAMESIZE_CAPTURE);
         sensor->set_quality(sensor, CAM_JPEG_QUALITY_CAPTURE);
     }
@@ -222,6 +225,12 @@ void camera_free_frame(camera_fb_t* fb) {
 
 af_result_t camera_trigger_autofocus(void) {
     if (!s_initialized) return AF_RESULT_FAILED;
+
+    sensor_t* sensor = esp_camera_sensor_get();
+    if (!sensor || sensor->id.PID != OV5640_PID) {
+        // Enfoque fijo (OV2640, etc.) no requiere comando de AF
+        return AF_RESULT_SUCCESS;
+    }
 
     ESP_LOGI(TAG, "Lanzando AF en OV5640...");
     

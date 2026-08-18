@@ -36,6 +36,8 @@ static bool is_authenticated(httpd_req_t *req) {
 static esp_err_t index_get_handler(httpd_req_t *req) {
     ESP_LOGI(TAG, "GET /");
     httpd_resp_set_type(req, "text/html");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+    httpd_resp_set_hdr(req, "Pragma", "no-cache");
     const size_t len = index_html_end - index_html_start;
     httpd_resp_send(req, (const char *)index_html_start, len);
     return ESP_OK;
@@ -44,19 +46,58 @@ static esp_err_t index_get_handler(httpd_req_t *req) {
 // HANDLERS DE LA API Y FOTOS
 // ============================================================================
 
+#include "wifi_ap.h"
+
 static esp_err_t status_get_handler(httpd_req_t *req) {
     httpd_resp_set_type(req, "application/json");
+    char pwd[64] = {0};
+    auth_get_password(pwd, sizeof(pwd));
     
-    bool pwd_set = auth_is_password_set();
-    bool auth = pwd_set ? is_authenticated(req) : false;
-    
-    char resp[100];
-    snprintf(resp, sizeof(resp), "{\"pwd_set\": %s, \"auth\": %s}", 
-             pwd_set ? "true" : "false", 
-             auth ? "true" : "false");
-             
+    char resp[160];
+    snprintf(resp, sizeof(resp), "{\"pwd_set\": true, \"auth\": true, \"wifi_pass\": \"%s\"}", pwd);
     httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
+}
+
+static esp_err_t password_post_handler(httpd_req_t *req) {
+    char pwd[65] = {0};
+    int ret = httpd_req_recv(req, pwd, MIN(req->content_len, sizeof(pwd) - 1));
+    if (ret <= 0) {
+        if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
+            httpd_resp_send_408(req);
+        }
+        return ESP_FAIL;
+    }
+    
+    // Parse JSON if sent as {"password":"..."} or plain text
+    char clean_pwd[65] = {0};
+    char *p = strstr(pwd, "\"password\":");
+    if (p) {
+        p += 11;
+        while (*p == ' ' || *p == '\"') p++;
+        int i = 0;
+        while (*p && *p != '\"' && *p != '}' && i < 64) {
+            clean_pwd[i++] = *p++;
+        }
+        clean_pwd[i] = 0;
+    } else {
+        strncpy(clean_pwd, pwd, sizeof(clean_pwd) - 1);
+    }
+    
+    if (strlen(clean_pwd) < 8) {
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "La contraseña debe tener al menos 8 caracteres");
+        return ESP_FAIL;
+    }
+    
+    if (auth_set_password(clean_pwd) == ESP_OK) {
+        wifi_ap_set_password(clean_pwd);
+        httpd_resp_set_type(req, "application/json");
+        httpd_resp_send(req, "{\"ok\":true,\"msg\":\"Contraseña actualizada\"}", HTTPD_RESP_USE_STRLEN);
+        return ESP_OK;
+    }
+    
+    httpd_resp_send_500(req);
+    return ESP_FAIL;
 }
 
 static esp_err_t setup_post_handler(httpd_req_t *req) {
@@ -122,6 +163,8 @@ static esp_err_t list_get_handler(httpd_req_t *req) {
     
     ESP_LOGI(TAG, "GET /list");
     httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-store");
     
     char *json_response = sd_list_files_json();
     if (json_response) {
@@ -154,19 +197,37 @@ static esp_err_t photo_get_handler(httpd_req_t *req) {
     
     ESP_LOGI(TAG, "GET /photo %s", param);
     
+    if (!sd_lock(2000)) {
+        ESP_LOGW(TAG, "SD ocupada para leer foto: %s", param);
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
     FILE* f = sd_open_file(param, "rb");
     if (!f) {
+        sd_unlock();
         httpd_resp_send_404(req);
         return ESP_FAIL;
     }
     
     httpd_resp_set_type(req, "image/jpeg");
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+    httpd_resp_set_hdr(req, "Cache-Control", "public, max-age=31536000");
+
+    char download_val[16] = {0};
+    if (httpd_query_key_value(filename, "download", download_val, sizeof(download_val)) == ESP_OK && strcmp(download_val, "1") == 0) {
+        char disposition_hdr[128];
+        snprintf(disposition_hdr, sizeof(disposition_hdr), "attachment; filename=\"%s\"", param);
+        httpd_resp_set_hdr(req, "Content-Disposition", disposition_hdr);
+    } else {
+        httpd_resp_set_hdr(req, "Content-Disposition", "inline");
+    }
     
-    // Use heap for chunk buffer to avoid stack overflow (HTTPD task stack is 4KB)
     const size_t CHUNK_SIZE = 4096;
     char *chunk = (char *)malloc(CHUNK_SIZE);
     if (!chunk) {
         fclose(f);
+        sd_unlock();
         ESP_LOGE(TAG, "No memory for chunk buffer");
         httpd_resp_send_500(req);
         return ESP_FAIL;
@@ -174,21 +235,23 @@ static esp_err_t photo_get_handler(httpd_req_t *req) {
     
     // Chunked transfer
     size_t chunk_len = 0;
+    esp_err_t res = ESP_OK;
     while ((chunk_len = fread(chunk, 1, CHUNK_SIZE, f)) > 0) {
         if (httpd_resp_send_chunk(req, chunk, chunk_len) != ESP_OK) {
-            fclose(f);
-            free(chunk);
-            ESP_LOGE(TAG, "Error enviando chunk");
-            httpd_resp_send_chunk(req, NULL, 0);
-            return ESP_FAIL;
+            ESP_LOGW(TAG, "Conexión cerrada por cliente durante envío de foto");
+            res = ESP_FAIL;
+            break;
         }
     }
     fclose(f);
     free(chunk);
+    sd_unlock();
     
-    // Finalize
-    httpd_resp_send_chunk(req, NULL, 0);
-    return ESP_OK;
+    if (res == ESP_OK) {
+        // Finalize chunked response
+        httpd_resp_send_chunk(req, NULL, 0);
+    }
+    return res;
 }
 
 static esp_err_t time_post_handler(httpd_req_t *req) {
@@ -263,24 +326,34 @@ static esp_err_t capture_post_handler(httpd_req_t *req) {
 }
 
 // ============================================================================
-// INICIALIZACION
+// BYPASS CAPTIVE PORTAL (Evita que iOS / Android bloqueen descargas en ventanas emergentes)
 // ============================================================================
 
-// Handler para el Captive Portal (Redirigir todo lo no encontrado a la IP principal)
-static esp_err_t captive_portal_handler(httpd_req_t *req, httpd_err_code_t err) {
-    httpd_resp_set_status(req, "302 Found");
-    httpd_resp_set_hdr(req, "Location", "http://192.168.4.1/");
-    httpd_resp_set_hdr(req, "Connection", "close");
+static esp_err_t apple_hotspot_detect_handler(httpd_req_t *req) {
+    httpd_resp_set_type(req, "text/html");
+    httpd_resp_send(req, "<HTML><HEAD><TITLE>Success</TITLE></HEAD><BODY>Success</BODY></HTML>", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+static esp_err_t android_generate_204_handler(httpd_req_t *req) {
+    httpd_resp_set_status(req, "204 No Content");
     httpd_resp_send(req, NULL, 0);
+    return ESP_OK;
+}
+
+static esp_err_t windows_connect_test_handler(httpd_req_t *req) {
+    httpd_resp_set_type(req, "text/plain");
+    httpd_resp_send(req, "Microsoft Connect Test", HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
 
 esp_err_t http_server_start(void) {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.stack_size = 10240; // 10KB para soportar operaciones FATFS y streaming sin stack overflow
     config.max_open_sockets = 7;
     config.lru_purge_enable = true;
     config.uri_match_fn = httpd_uri_match_wildcard;
-    config.max_uri_handlers = 12;
+    config.max_uri_handlers = 18;
 
     // Inicializar auth
     auth_init();
@@ -292,7 +365,6 @@ esp_err_t http_server_start(void) {
         httpd_uri_t uri_root = { .uri = "/", .method = HTTP_GET, .handler = index_get_handler, .user_ctx = NULL };
         httpd_register_uri_handler(server, &uri_root);
 
-        
         httpd_uri_t uri_status = { .uri = "/api/status", .method = HTTP_GET, .handler = status_get_handler, .user_ctx = NULL };
         httpd_register_uri_handler(server, &uri_status);
         
@@ -301,6 +373,9 @@ esp_err_t http_server_start(void) {
         
         httpd_uri_t uri_login = { .uri = "/api/login", .method = HTTP_POST, .handler = login_post_handler, .user_ctx = NULL };
         httpd_register_uri_handler(server, &uri_login);
+
+        httpd_uri_t uri_password = { .uri = "/api/password", .method = HTTP_POST, .handler = password_post_handler, .user_ctx = NULL };
+        httpd_register_uri_handler(server, &uri_password);
 
         httpd_uri_t uri_list = { .uri = "/list", .method = HTTP_GET, .handler = list_get_handler, .user_ctx = NULL };
         httpd_register_uri_handler(server, &uri_list);
@@ -317,11 +392,26 @@ esp_err_t http_server_start(void) {
         httpd_uri_t uri_delete = { .uri = "/api/delete", .method = HTTP_POST, .handler = delete_post_handler, .user_ctx = NULL };
         httpd_register_uri_handler(server, &uri_delete);
 
+        // Respuestas de conectividad limpia para iOS, Android y Windows
+        httpd_uri_t uri_apple1 = { .uri = "/hotspot-detect.html*", .method = HTTP_GET, .handler = apple_hotspot_detect_handler, .user_ctx = NULL };
+        httpd_register_uri_handler(server, &uri_apple1);
+
+        httpd_uri_t uri_apple2 = { .uri = "/library/test/success.html*", .method = HTTP_GET, .handler = apple_hotspot_detect_handler, .user_ctx = NULL };
+        httpd_register_uri_handler(server, &uri_apple2);
+
+        httpd_uri_t uri_android1 = { .uri = "/generate_204*", .method = HTTP_GET, .handler = android_generate_204_handler, .user_ctx = NULL };
+        httpd_register_uri_handler(server, &uri_android1);
+
+        httpd_uri_t uri_android2 = { .uri = "/gen_204*", .method = HTTP_GET, .handler = android_generate_204_handler, .user_ctx = NULL };
+        httpd_register_uri_handler(server, &uri_android2);
+
+        httpd_uri_t uri_win1 = { .uri = "/connecttest.txt*", .method = HTTP_GET, .handler = windows_connect_test_handler, .user_ctx = NULL };
+        httpd_register_uri_handler(server, &uri_win1);
+
+        httpd_uri_t uri_win2 = { .uri = "/ncsi.txt*", .method = HTTP_GET, .handler = windows_connect_test_handler, .user_ctx = NULL };
+        httpd_register_uri_handler(server, &uri_win2);
+
         ESP_LOGI(TAG, "HTTP Server iniciado correctamente.");
-
-        // Registrar error handler 404 para el captive portal
-        httpd_register_err_handler(server, HTTPD_404_NOT_FOUND, captive_portal_handler);
-
         return ESP_OK;
     }
     

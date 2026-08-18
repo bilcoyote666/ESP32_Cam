@@ -66,7 +66,23 @@ void led_update_from_state(system_state_t state);
 void led_flash_confirm(uint8_t flashes);
 
 /**
- * @brief Deinicializa el LED y para el timer
+ * @brief Enciende el LED de flash para la foto
+ */
+void led_flash_on(void);
+
+/**
+ * @brief Apaga el LED de flash
+ */
+void led_flash_off(void);
+
+/**
+ * @brief Dispara un pulso del LED de flash con duración determinada
+ * @param duration_ms Duración en milisegundos
+ */
+void led_trigger_flash(uint32_t duration_ms);
+
+/**
+ * @brief Deinicializa los LEDs y para el timer
  */
 void led_deinit(void);
 
