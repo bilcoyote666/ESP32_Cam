@@ -11,6 +11,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <time.h>
+#include <unistd.h>
 
 #pragma GCC diagnostic ignored "-Wformat-truncation"
 #include "esp_log.h"
@@ -179,6 +180,8 @@ esp_err_t sd_save_photo(const uint8_t* jpeg_data, size_t jpeg_size, char* out_fi
     }
 
     size_t written = fwrite(jpeg_data, 1, jpeg_size, f);
+    fflush(f);
+    fsync(fileno(f));
     fclose(f);
 
     xSemaphoreGive(s_sd_mutex);

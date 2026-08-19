@@ -562,6 +562,15 @@
             transform: scale(0.97);
         }
 
+        .btn-refresh-modern.is-refreshing svg {
+            animation: spin-refresh 0.7s linear infinite;
+        }
+
+        @keyframes spin-refresh {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
         .editor-screen {
             flex-direction: column;
             height: 100%;
@@ -1789,95 +1798,106 @@
             renderPhotoCarousel(mockFiles);
         }
 
-        async function fetchPhotoList() {
+        async function fetchPhotoList(showLoader = true) {
             try {
-                photoCarousel.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">↻</div>
-                        <p>Cargando lista de fotos...</p>
-                    </div>
-                `;
+                if (showLoader && (!photosList || photosList.length === 0)) {
+                    photoCarousel.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">↻</div>
+                            <p>Cargando lista de fotos...</p>
+                        </div>
+                    `;
+                }
                 
                 const response = await fetch('/list?t=' + Date.now());
-                if (!response.ok) throw new Error("Error fetching photos");
+                if (!response.ok) throw new Error("Error fetching photos: " + response.status);
                 const files = await response.json();
                 
-                renderPhotoCarousel(files);
+                isOfflineMode = false;
+                updateStatusIndicator(true, "ON");
+                
+                // Ordenar más recientes primero
+                const sortedFiles = (files || []).sort((a, b) => b.name.localeCompare(a.name));
+                renderPhotoCarousel(sortedFiles);
+                return true;
             } catch (error) {
-                console.error("Error reading file list, loading demo mode:", error);
-                showOfflineDemoMode();
+                console.warn("Error leyendo lista de fotos:", error);
+                if (!photosList || photosList.length === 0) {
+                    showOfflineDemoMode();
+                } else {
+                    updateStatusIndicator(false, "OFFLINE");
+                }
+                return false;
             }
         }
 
-        // Lógica de auto-reconexión cuando se reanuda la pestaña o se enciende la pantalla
+        // Lógica de auto-reconexión y actualización inteligente
         async function autoReconnect() {
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 2000);
+                const timeoutId = setTimeout(() => controller.abort(), 3500);
                 const response = await fetch('/api/status?t=' + Date.now(), { signal: controller.signal });
                 clearTimeout(timeoutId);
                 
                 if (response.ok) {
-                    if (isOfflineMode) {
-                        console.log("Reconectado a la cámara. Cargando fotos reales...");
-                        isOfflineMode = false;
-                        updateStatusIndicator(true, "ON");
-                        fetchPhotoList();
-                    } else {
-                        // Refrescar silenciosamente
-                        fetchPhotoListSilent();
-                    }
+                    isOfflineMode = false;
+                    updateStatusIndicator(true, "ON");
+                    fetchPhotoListSilent();
                 }
             } catch (e) {
-                console.warn("La cámara sigue sin respuesta:", e.message);
-                if (!isOfflineMode) {
-                    showOfflineDemoMode();
-                }
+                console.warn("Comprobación de estado:", e.message);
             }
         }
 
         async function fetchPhotoListSilent() {
+            // Solo comprobar silenciosamente si estamos en la galería
+            if (!views.gallery || !views.gallery.classList.contains('active')) return;
+
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 3000);
+                const timeoutId = setTimeout(() => controller.abort(), 3500);
                 const response = await fetch('/list?t=' + Date.now(), { signal: controller.signal });
                 clearTimeout(timeoutId);
                 
-                if (!response.ok) throw new Error("Error fetching photos");
+                if (!response.ok) return;
                 const files = await response.json();
                 
-                // Ordenar descendentemente antes de comparar para evitar parpadeos recurrentes
+                isOfflineMode = false;
+                updateStatusIndicator(true, "ON");
+                
+                // Ordenar descendentemente
                 const sortedFiles = (files || []).sort((a, b) => b.name.localeCompare(a.name));
                 const currentFilesNames = (photosList || []).map(p => p.name).join(',');
                 const newFilesNames = sortedFiles.map(p => p.name).join(',');
                 
                 if (currentFilesNames !== newFilesNames) {
+                    console.log("📸 ¡Nueva foto detectada en la galería!");
                     renderPhotoCarousel(sortedFiles);
                 }
             } catch (error) {
-                console.error("Silent fetch failed:", error);
+                // Silencioso
             }
         }
 
         // Escuchar eventos de cambio de visibilidad y foco en móviles
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
-                console.log("Pestaña activa detectada, verificando conexión...");
-                autoReconnect();
+                console.log("Pestaña activa, actualizando galería...");
+                fetchPhotoList(false);
             }
         });
 
         window.addEventListener('focus', () => {
-            console.log("Ventana enfocada detectada, verificando conexión...");
-            autoReconnect();
+            console.log("Ventana enfocada, actualizando galería...");
+            fetchPhotoList(false);
         });
 
-        // Bucle periódico cada 7 segundos para comprobar conexión
+        // Polling automático continuo cada 2.5s para detectar fotos hechas con el botón físico
         setInterval(() => {
             if (document.visibilityState === 'visible') {
-                autoReconnect();
+                fetchPhotoListSilent();
             }
-        }, 7000);
+        }, 2500);
 
         function renderPhotoCarousel(files) {
             const badge = document.getElementById('photo-count-badge');
@@ -2250,12 +2270,16 @@
 
         btnBack.addEventListener('click', () => {
             switchView('gallery');
-            if (!isOfflineMode) fetchPhotoList();
+            fetchPhotoList(false);
         });
 
-        btnRefresh.addEventListener('click', () => {
-            if (isOfflineMode) showOfflineDemoMode();
-            else fetchPhotoList();
+        btnRefresh.addEventListener('click', async () => {
+            btnRefresh.classList.add('is-refreshing');
+            isOfflineMode = false;
+            await fetchPhotoList(true);
+            setTimeout(() => {
+                btnRefresh.classList.remove('is-refreshing');
+            }, 500);
         });
 
         const btnCapture = document.getElementById('btn-capture');

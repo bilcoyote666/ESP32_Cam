@@ -165,7 +165,9 @@ static esp_err_t list_get_handler(httpd_req_t *req) {
     ESP_LOGI(TAG, "GET /list");
     httpd_resp_set_type(req, "application/json");
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
-    httpd_resp_set_hdr(req, "Cache-Control", "no-store");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+    httpd_resp_set_hdr(req, "Pragma", "no-cache");
+    httpd_resp_set_hdr(req, "Expires", "0");
     
     char *json_response = sd_list_files_json();
     if (json_response) {
