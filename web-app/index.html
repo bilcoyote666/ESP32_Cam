@@ -1282,6 +1282,16 @@
             </div>
             <div class="app-logo">RABOSETA CAM</div>
             <div style="display: flex; align-items: center; gap: 8px;">
+                <!-- Botón oculto para el selector de archivo OTA -->
+                <input type="file" id="ota-file-input" accept=".bin" style="display: none;">
+                <button id="btn-ota" class="btn-security" title="Actualizar Firmware por WiFi (OTA)">
+                    <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <span>OTA FW</span>
+                </button>
                 <button id="btn-security" class="btn-security" title="Cambiar Contraseña WiFi">
                     <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -1357,11 +1367,9 @@
                         </svg>
                         <span id="capture-text">Disparar Foto</span>
                     </button>
-                    <button id="btn-flash" class="btn-refresh-modern" title="Probar Destello de Flash">
-                        <svg viewBox="0 0 24 24" width="19" height="19" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                        </svg>
-                        <span>Flash</span>
+                    <button id="btn-flash" class="btn-refresh-modern" title="Activar/Desactivar Flash">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+                        <span id="flash-text">Flash: ON</span>
                     </button>
                     <button id="btn-refresh" class="btn-refresh-modern" title="Actualizar lista de fotos">
                         <svg viewBox="0 0 24 24" width="19" height="19" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -2375,13 +2383,33 @@
             });
         }
 
+        // AUTO-UPDATE GALERÍA
+        setInterval(() => {
+            const galleryView = document.getElementById('gallery-view');
+            if (galleryView && galleryView.style.display !== 'none') {
+                fetchPhotoListSilent();
+            }
+        }, 3000);
+
         const btnFlash = document.getElementById('btn-flash');
         if (btnFlash) {
             btnFlash.addEventListener('click', async () => {
                 try {
-                    triggerAppFlashEffect();
                     btnFlash.style.opacity = '0.5';
-                    await fetch('/api/flash', { method: 'POST' });
+                    const res = await fetch('/api/flash', { method: 'POST' });
+                    if (res.ok) {
+                        const data = await res.json();
+                        const flashText = document.getElementById('flash-text');
+                        if (flashText) {
+                            if (data.enabled) {
+                                flashText.textContent = "Flash: ON";
+                                btnFlash.style.color = ""; // Default color
+                            } else {
+                                flashText.textContent = "Flash: OFF";
+                                btnFlash.style.color = "#888"; // Dimmed color
+                            }
+                        }
+                    }
                     setTimeout(() => { btnFlash.style.opacity = '1'; }, 300);
                 } catch (e) {
                     console.error("Error activando flash:", e);
@@ -2625,6 +2653,54 @@
 
             photoCarousel.addEventListener('mouseleave', () => {
                 isMouseDown = false;
+            });
+        }
+
+        // ============================================================================
+        // ACTUALIZACIÓN OTA (Over-The-Air)
+        // ============================================================================
+        const btnOta = document.getElementById('btn-ota');
+        const otaFileInput = document.getElementById('ota-file-input');
+        if (btnOta && otaFileInput) {
+            btnOta.addEventListener('click', () => {
+                otaFileInput.click();
+            });
+
+            otaFileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                if (!confirm(`¿Estás seguro de que quieres subir el firmware "${file.name}"? La cámara se reiniciará durante el proceso.`)) {
+                    otaFileInput.value = '';
+                    return;
+                }
+
+                const originalText = btnOta.querySelector('span').textContent;
+                btnOta.querySelector('span').textContent = "Subiendo...";
+                btnOta.style.pointerEvents = 'none';
+                btnOta.style.opacity = '0.5';
+
+                try {
+                    const res = await fetch('/api/ota', {
+                        method: 'POST',
+                        body: file
+                    });
+
+                    if (res.ok) {
+                        alert("¡Actualización OTA completada con éxito! La placa se está reiniciando. Por favor, recarga esta página en 10 segundos.");
+                    } else {
+                        const err = await res.text();
+                        alert(`Error en OTA: ${err}`);
+                    }
+                } catch (error) {
+                    console.error("OTA fetch error:", error);
+                    alert("Error de conexión durante la actualización OTA.");
+                }
+
+                btnOta.querySelector('span').textContent = originalText;
+                btnOta.style.pointerEvents = 'auto';
+                btnOta.style.opacity = '1';
+                otaFileInput.value = '';
             });
         }
 

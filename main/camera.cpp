@@ -147,16 +147,15 @@ esp_err_t camera_init(void) {
     if (sensor->set_vflip) sensor->set_vflip(sensor, 0);
     if (sensor->set_colorbar) sensor->set_colorbar(sensor, 0);
 
-    // Opciones avanzadas para OV5640 si aplica
-    if (sensor->id.PID == OV5640_PID) {
-        if (sensor->set_aec2) sensor->set_aec2(sensor, 1);
-        if (sensor->set_bpc) sensor->set_bpc(sensor, 0);
-        if (sensor->set_wpc) sensor->set_wpc(sensor, 1);
-        if (sensor->set_raw_gma) sensor->set_raw_gma(sensor, 1);
-        if (sensor->set_lenc) sensor->set_lenc(sensor, 1);
-        if (sensor->set_dcw) sensor->set_dcw(sensor, 1);
-    }
-
+    // Opciones avanzadas para máxima calidad
+    if (sensor->set_aec2) sensor->set_aec2(sensor, 1);
+    if (sensor->set_bpc) sensor->set_bpc(sensor, 0);
+    if (sensor->set_wpc) sensor->set_wpc(sensor, 1);
+    if (sensor->set_raw_gma) sensor->set_raw_gma(sensor, 1);
+    if (sensor->set_lenc) sensor->set_lenc(sensor, 1);
+    if (sensor->set_dcw) sensor->set_dcw(sensor, 1);
+    if (sensor->set_aec_value) sensor->set_aec_value(sensor, 300); // Auto exposure target
+    
     // Forzar el modo a DETECT (QVGA) ya que iniciamos en modo CAPTURE
     sensor->set_framesize(sensor, CAM_FRAMESIZE_DETECT);
     sensor->set_quality(sensor, CAM_JPEG_QUALITY_DETECT);

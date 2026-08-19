@@ -28,6 +28,7 @@ idf_component_register(
         esp_timer
         freertos
         log
+        app_update
 )
 
 target_add_binary_data(${COMPONENT_LIB} "../web-app/index.html" TEXT)

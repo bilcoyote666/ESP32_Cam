@@ -2,7 +2,7 @@
  * @file main.cpp
  * @brief Punto de entrada principal — CámaraESP32 con OV5640
  *
- * Placa:   Seeed Studio XIAO ESP32S3 Sense
+ * Placa:   seeed studio xiao esp32-s3 sense
  * Cámara:  OV5640 5MP con autoenfoque hardware
  * Storage: MicroSD via SPI
  * Radio:   BLE 5.0 (NimBLE) + BT Classic SPP
@@ -48,6 +48,8 @@
 #include "ble_transfer.h"
 
 static const char* TAG = "MAIN";
+
+bool g_flash_enabled = true;
 
 // =============================================================================
 // Estado global del sistema
@@ -106,12 +108,22 @@ static void on_button_event(button_event_t event, void* user_data) {
 
     if (event == BTN_EVENT_SHORT_PRESS) {
         ESP_LOGI(TAG, "Botón: pulsación corta → captura");
+
+        if (g_flash_enabled) {
+            led_flash_on();
+        }
+
         msg.trigger     = MSG_CAPTURE_BTN;
         msg.burst_count = 1;
         xQueueSend(s_capture_queue, &msg, 0);
 
     } else if (event == BTN_EVENT_LONG_PRESS) {
         ESP_LOGI(TAG, "Botón: pulsación larga → ráfaga x3");
+
+        if (g_flash_enabled) {
+            led_flash_on();
+        }
+
         msg.trigger     = MSG_BURST_START;
         msg.burst_count = 3;
         xQueueSend(s_capture_queue, &msg, 0);
@@ -198,8 +210,11 @@ static void capture_task(void* pvParam) {
 
             // 4. Efecto de Flash y Captura de Frame JPEG
             set_system_state(SYS_STATE_CAPTURING);
-            ESP_LOGI(TAG, "⚡ Encendiendo Flash para la foto");
-            led_flash_on();
+            
+            if (g_flash_enabled) {
+                ESP_LOGI(TAG, "⚡ Encendiendo Flash para la foto");
+                led_flash_on();
+            }
 
             // Descartar frame previo que estuviera en buffer sin iluminación de flash
             camera_fb_t* discard = camera_capture_frame();
@@ -215,8 +230,10 @@ static void capture_task(void* pvParam) {
 
             // Mantener destello de flash para efecto visual realista
             vTaskDelay(pdMS_TO_TICKS(150));
-            led_flash_off();
-            ESP_LOGI(TAG, "⚡ Flash completado");
+            if (g_flash_enabled) {
+                led_flash_off();
+                ESP_LOGI(TAG, "⚡ Flash completado");
+            }
 
             if (!fb) {
                 ESP_LOGE(TAG, "Error capturando frame");
@@ -279,7 +296,7 @@ static void capture_task(void* pvParam) {
 extern "C" void app_main(void) {
     ESP_LOGI(TAG, "=============================================");
     ESP_LOGI(TAG, "  CámaraESP32 — Firmware v%s", FIRMWARE_VERSION);
-    ESP_LOGI(TAG, "  Placa: Seeed Studio XIAO ESP32S3 Sense");
+    ESP_LOGI(TAG, "  Placa: seeed studio xiao esp32-s3 sense");
     ESP_LOGI(TAG, "  Cámara: OV5640 5MP");
     ESP_LOGI(TAG, "=============================================");
 

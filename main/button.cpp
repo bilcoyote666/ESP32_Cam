@@ -41,16 +41,12 @@ static void poll_timer_cb(void* arg) {
     static int s_ext_press_ms = 0;
     static bool s_ext_fired = false;
     static bool s_ext_long_fired = false;
-    static bool s_ext_saw_high = false;
 
     if (PIN_BTN_CAPTURE != -1) {
         int level = gpio_get_level((gpio_num_t)PIN_BTN_CAPTURE);
-        if (level == 1) { // Reposo con pull-up (HIGH)
-            s_ext_saw_high = true;
-            s_ext_press_ms = 0;
-            s_ext_fired = false;
-            s_ext_long_fired = false;
-        } else if (s_ext_saw_high || level == 0) { // Pulsado a GND (LOW)
+        
+        // El botón conecta a GND, así que presionado es nivel 0
+        if (level == 0) { 
             s_ext_press_ms += 10;
             if (s_ext_press_ms >= BTN_DEBOUNCE_MS && !s_ext_fired) {
                 s_ext_fired = true;
@@ -61,6 +57,11 @@ static void poll_timer_cb(void* arg) {
                 ESP_LOGI(TAG, "📸 Disparador físico Pin D0 (GPIO%d) pulsación larga -> Ráfaga", PIN_BTN_CAPTURE);
                 if (s_callback) s_callback(BTN_EVENT_LONG_PRESS, s_user_data);
             }
+        } else { 
+            // Soltado
+            s_ext_press_ms = 0;
+            s_ext_fired = false;
+            s_ext_long_fired = false;
         }
     }
 

@@ -1,0 +1,7 @@
+[0;32mI (60236) SD_STORAGE: SD: 3.72 GB libre de 3.73 GB total[0m
+[0;32mI (60236) MAIN: --- ESTADO ---[0m
+[0;32mI (60237) MAIN:   Sistema:     2[0m
+[0;32mI (60239) MAIN:   WiFi:        AP activo[0m
+[0;32mI (60243) MAIN:   SD Libre:    3.7 GB[0m
+[0;32mI (60248) MAIN:   Face FPS:    0.0[0m
+[0;32mI (60252) MAIN:   RAM libre:   7400 KB[0m

@@ -2,7 +2,7 @@
  * @file config.h
  * @brief Configuración central — CámaraESP32 con OV5640
  *
- * Placa: Seeed Studio XIAO ESP32S3 Sense
+ * Placa: seeed studio xiao esp32-s3 sense
  * Cámara: OV2640
  * MicroSD: SPI
  */
@@ -17,7 +17,7 @@
 #define DEVICE_NAME          "Raboseta Cam"
 
 // =============================================================================
-// PINES — CÁMARA OV2640 (interfaz DVP 24-pin - XIAO ESP32S3 Sense)
+// PINES — CÁMARA OV2640 (interfaz DVP 24-pin - seeed studio xiao esp32-s3 sense)
 // =============================================================================
 #define CAM_PIN_PWDN         (-1)
 #define CAM_PIN_RESET        (-1)
@@ -25,7 +25,7 @@
 #define CAM_PIN_SIOD         40
 #define CAM_PIN_SIOC         39
 
-// Líneas de datos DVP (8 bits) — Pines exactos de XIAO ESP32S3 Sense
+// Líneas de datos DVP (8 bits) — Pines exactos de seeed studio xiao esp32-s3 sense
 #define CAM_PIN_D7           48
 #define CAM_PIN_D6           11
 #define CAM_PIN_D5           12
@@ -43,7 +43,7 @@
 // Frecuencia clock del sensor (20 MHz para OV2640 en XIAO Sense)
 #define CAM_XCLK_FREQ_HZ     20000000
 
-// Modo SPI para MicroSD en XIAO ESP32S3 Sense
+// Modo SPI para MicroSD en seeed studio xiao esp32-s3 sense
 #define SD_SPI_PIN_CS        21     // GPIO21 — CS de la ranura MicroSD interna en placa Sense
 #define SD_SPI_PIN_MOSI      9      // GPIO9 (D10) — MOSI
 #define SD_SPI_PIN_MISO      8      // GPIO8 (D9) — MISO

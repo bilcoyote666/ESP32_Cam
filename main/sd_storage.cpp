@@ -85,7 +85,7 @@ esp_err_t sd_storage_init(void) {
     mount_config.max_files              = SD_MAX_FILES;
     mount_config.allocation_unit_size   = SD_ALLOC_UNIT_SIZE;
 
-    // Pin CS para Seeed Studio XIAO ESP32S3 Sense (GPIO21)
+    // Pin CS para seeed studio xiao esp32-s3 sense (GPIO21)
     const gpio_num_t cs_candidates[] = { (gpio_num_t)SD_SPI_PIN_CS, GPIO_NUM_21 };
     err = ESP_FAIL;
     for (size_t i = 0; i < sizeof(cs_candidates)/sizeof(cs_candidates[0]); i++) {

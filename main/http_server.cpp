@@ -8,10 +8,97 @@
 #include "auth.h"
 #include "led.h"
 #include <sys/param.h>
+#include <esp_ota_ops.h>
+#include <esp_system.h>
 
 static const char *TAG = "HTTP";
 
 extern "C" esp_err_t main_trigger_capture(void);
+static bool is_authenticated(httpd_req_t *req);
+
+// ============================================================================
+// HANDLER OTA (Over-The-Air Update)
+// ============================================================================
+static esp_err_t ota_post_handler(httpd_req_t *req) {
+    if (auth_is_password_set() && !is_authenticated(req)) {
+        httpd_resp_send_err(req, HTTPD_401_UNAUTHORIZED, "No Autorizado");
+        return ESP_FAIL;
+    }
+
+    ESP_LOGI(TAG, "Iniciando actualización OTA...");
+
+    const esp_partition_t *update_partition = esp_ota_get_next_update_partition(NULL);
+    if (update_partition == NULL) {
+        ESP_LOGE(TAG, "No se encontró partición OTA disponible");
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "No hay partición OTA libre");
+        return ESP_FAIL;
+    }
+
+    ESP_LOGI(TAG, "Escribiendo en partición: %s", update_partition->label);
+
+    esp_ota_handle_t ota_handle = 0;
+    esp_err_t err = esp_ota_begin(update_partition, OTA_WITH_SEQUENTIAL_WRITES, &ota_handle);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Error esp_ota_begin: %s", esp_err_to_name(err));
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Error iniciando OTA");
+        return ESP_FAIL;
+    }
+
+    char buf[1024];
+    int received = 0;
+    int remaining = req->content_len;
+
+    while (remaining > 0) {
+        int to_read = MIN(remaining, sizeof(buf));
+        int ret = httpd_req_recv(req, buf, to_read);
+        
+        if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
+            continue; // Reintentar
+        } else if (ret <= 0) {
+            ESP_LOGE(TAG, "Error recibiendo datos OTA");
+            esp_ota_end(ota_handle);
+            httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fallo recibiendo el binario");
+            return ESP_FAIL;
+        }
+
+        err = esp_ota_write(ota_handle, buf, ret);
+        if (err != ESP_OK) {
+            ESP_LOGE(TAG, "Error esp_ota_write: %s", esp_err_to_name(err));
+            esp_ota_end(ota_handle);
+            httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Error escribiendo en memoria Flash");
+            return ESP_FAIL;
+        }
+
+        received += ret;
+        remaining -= ret;
+    }
+
+    err = esp_ota_end(ota_handle);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Error esp_ota_end: %s", esp_err_to_name(err));
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Error finalizando OTA");
+        return ESP_FAIL;
+    }
+
+    err = esp_ota_set_boot_partition(update_partition);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Error esp_ota_set_boot_partition: %s", esp_err_to_name(err));
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Error configurando arranque OTA");
+        return ESP_FAIL;
+    }
+
+    ESP_LOGI(TAG, "OTA exitoso. Reiniciando...");
+    
+    // Responder antes de reiniciar
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_send(req, "{\"ok\":true}", HTTPD_RESP_USE_STRLEN);
+
+    // Reiniciar un segundo después para permitir que la respuesta HTTP termine
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    esp_restart();
+
+    return ESP_OK;
+}
 
 // Referencias a los archivos embebidos (generados por target_add_binary_data)
 extern const uint8_t index_html_start[] asm("_binary_index_html_start");
@@ -312,6 +399,8 @@ static esp_err_t delete_post_handler(httpd_req_t *req) {
     }
 }
 
+extern bool g_flash_enabled;
+
 static esp_err_t capture_post_handler(httpd_req_t *req) {
     if (auth_is_password_set() && !is_authenticated(req)) {
         httpd_resp_send_err(req, HTTPD_401_UNAUTHORIZED, "No Autorizado");
@@ -329,10 +418,18 @@ static esp_err_t capture_post_handler(httpd_req_t *req) {
 }
 
 static esp_err_t flash_post_handler(httpd_req_t *req) {
-    ESP_LOGI(TAG, "POST /api/flash -> Disparando destello de prueba de Flash (Pin D2)");
-    led_trigger_flash(200);
+    g_flash_enabled = !g_flash_enabled;
+    ESP_LOGI(TAG, "POST /api/flash -> Flash toggled to: %d", g_flash_enabled);
+    
+    if (g_flash_enabled) {
+        led_trigger_flash(50);
+    }
+    
+    char resp[64];
+    snprintf(resp, sizeof(resp), "{\"ok\":true,\"enabled\":%s}", g_flash_enabled ? "true" : "false");
+    
     httpd_resp_set_type(req, "application/json");
-    httpd_resp_send(req, "{\"ok\":true,\"msg\":\"Flash OK\"}", HTTPD_RESP_USE_STRLEN);
+    httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
 
@@ -399,6 +496,9 @@ esp_err_t http_server_start(void) {
 
         httpd_uri_t uri_capture = { .uri = "/api/capture", .method = HTTP_POST, .handler = capture_post_handler, .user_ctx = NULL };
         httpd_register_uri_handler(server, &uri_capture);
+
+        httpd_uri_t uri_ota = { .uri = "/api/ota", .method = HTTP_POST, .handler = ota_post_handler, .user_ctx = NULL };
+        httpd_register_uri_handler(server, &uri_ota);
 
         httpd_uri_t uri_flash = { .uri = "/api/flash", .method = HTTP_POST, .handler = flash_post_handler, .user_ctx = NULL };
         httpd_register_uri_handler(server, &uri_flash);
