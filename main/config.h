@@ -44,7 +44,7 @@
 #define CAM_XCLK_FREQ_HZ     20000000
 
 // Modo SPI para MicroSD en XIAO ESP32S3 Sense
-#define SD_SPI_PIN_CS        3      // GPIO3 (D2) — CS de la ranura MicroSD en placa Sense
+#define SD_SPI_PIN_CS        21     // GPIO21 — CS de la ranura MicroSD interna en placa Sense
 #define SD_SPI_PIN_MOSI      9      // GPIO9 (D10) — MOSI
 #define SD_SPI_PIN_MISO      8      // GPIO8 (D9) — MISO
 #define SD_SPI_PIN_SCK       7      // GPIO7 (D8) — SCK
@@ -52,7 +52,7 @@
 // =============================================================================
 // PINES — BOTÓN Y LED
 // =============================================================================
-#define PIN_BTN_CAPTURE      1      // GPIO1 — Pin externo D0 (Botón físico de disparo)
+#define PIN_BTN_CAPTURE      1      // GPIO1 — Pin externo D0 (Botón físico de disparo a GND)
 #define PIN_LED_STATUS       2      // GPIO2 — Pin externo D1 (LED de estado)
 #define PIN_LED_FLASH        3      // GPIO3 — Pin externo D2 (LED de Flash)
 

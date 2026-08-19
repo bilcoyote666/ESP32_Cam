@@ -377,8 +377,9 @@ extern "C" void app_main(void) {
     ESP_LOGI(TAG, "");
     ESP_LOGI(TAG, "✓ Sistema listo");
     ESP_LOGI(TAG, "  WiFi:        Conéctate a la red '%s'", WIFI_AP_SSID);
-    ESP_LOGI(TAG, "  Botón:       GPIO%d (BOOT button)", PIN_BTN_CAPTURE);
-    ESP_LOGI(TAG, "  LED:         GPIO%d (estado del sistema)", PIN_LED_STATUS);
+    ESP_LOGI(TAG, "  Botón:       Pin D0 (GPIO%d - Disparador a GND)", PIN_BTN_CAPTURE);
+    ESP_LOGI(TAG, "  Flash:       Pin D2 (GPIO%d - LED de Flash)", PIN_LED_FLASH);
+    ESP_LOGI(TAG, "  LED Estado:  Pin D1 (GPIO%d)", PIN_LED_STATUS);
     ESP_LOGI(TAG, "");
 
     set_system_state(SYS_STATE_DETECTING);

@@ -6,6 +6,7 @@
 #include <sys/time.h>
 #include "sd_storage.h"
 #include "auth.h"
+#include "led.h"
 #include <sys/param.h>
 
 static const char *TAG = "HTTP";
@@ -325,6 +326,14 @@ static esp_err_t capture_post_handler(httpd_req_t *req) {
     }
 }
 
+static esp_err_t flash_post_handler(httpd_req_t *req) {
+    ESP_LOGI(TAG, "POST /api/flash -> Disparando destello de prueba de Flash (Pin D2)");
+    led_trigger_flash(200);
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_send(req, "{\"ok\":true,\"msg\":\"Flash OK\"}", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
 // ============================================================================
 // BYPASS CAPTIVE PORTAL (Evita que iOS / Android bloqueen descargas en ventanas emergentes)
 // ============================================================================
@@ -353,7 +362,7 @@ esp_err_t http_server_start(void) {
     config.max_open_sockets = 7;
     config.lru_purge_enable = true;
     config.uri_match_fn = httpd_uri_match_wildcard;
-    config.max_uri_handlers = 18;
+    config.max_uri_handlers = 20;
 
     // Inicializar auth
     auth_init();
@@ -388,6 +397,9 @@ esp_err_t http_server_start(void) {
 
         httpd_uri_t uri_capture = { .uri = "/api/capture", .method = HTTP_POST, .handler = capture_post_handler, .user_ctx = NULL };
         httpd_register_uri_handler(server, &uri_capture);
+
+        httpd_uri_t uri_flash = { .uri = "/api/flash", .method = HTTP_POST, .handler = flash_post_handler, .user_ctx = NULL };
+        httpd_register_uri_handler(server, &uri_flash);
 
         httpd_uri_t uri_delete = { .uri = "/api/delete", .method = HTTP_POST, .handler = delete_post_handler, .user_ctx = NULL };
         httpd_register_uri_handler(server, &uri_delete);
