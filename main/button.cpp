@@ -28,37 +28,39 @@ static inline bool is_button_down(void) {
 }
 
 // =============================================================================
-// Polling del botón cada 10ms con respuesta inmediata y filtro de arranque
+// Polling del botón cada 10ms con respuesta inmediata
 // =============================================================================
 static void poll_timer_cb(void* arg) {
-    static uint32_t s_boot_grace_ticks = 100; // 1 segundo de gracia tras el arranque
+    static uint32_t s_boot_grace_ticks = 20; // 200ms de gracia tras el arranque
     if (s_boot_grace_ticks > 0) {
         s_boot_grace_ticks--;
         return;
     }
 
-    // 1. Botón físico externo en PIN_BTN_CAPTURE (GPIO1 / D0)
+    // 1. Botón físico externo en PIN_BTN_CAPTURE (Pin D0 / GPIO1)
     static int s_ext_press_ms = 0;
     static bool s_ext_fired = false;
     static bool s_ext_long_fired = false;
+    static bool s_ext_saw_high = false;
 
     if (PIN_BTN_CAPTURE != -1) {
         int level = gpio_get_level((gpio_num_t)PIN_BTN_CAPTURE);
-        if (level == 0) { // Pulsado a GND
-            s_ext_press_ms += 10;
-            if (s_ext_press_ms >= BTN_DEBOUNCE_MS && !s_ext_fired) {
-                s_ext_fired = true;
-                ESP_LOGI(TAG, "📸 Disparador físico (GPIO%d) pulsado", PIN_BTN_CAPTURE);
-                if (s_callback) s_callback(BTN_EVENT_SHORT_PRESS, s_user_data);
-            } else if (s_ext_press_ms >= BTN_LONG_PRESS_MS && !s_ext_long_fired) {
-                s_ext_long_fired = true;
-                ESP_LOGI(TAG, "📸 Disparador físico (GPIO%d) pulsación larga -> Ráfaga", PIN_BTN_CAPTURE);
-                if (s_callback) s_callback(BTN_EVENT_LONG_PRESS, s_user_data);
-            }
-        } else { // Soltado
+        if (level == 1) { // Reposo con pull-up (HIGH)
+            s_ext_saw_high = true;
             s_ext_press_ms = 0;
             s_ext_fired = false;
             s_ext_long_fired = false;
+        } else if (s_ext_saw_high || level == 0) { // Pulsado a GND (LOW)
+            s_ext_press_ms += 10;
+            if (s_ext_press_ms >= BTN_DEBOUNCE_MS && !s_ext_fired) {
+                s_ext_fired = true;
+                ESP_LOGI(TAG, "📸 ¡Disparador físico Pin D0 (GPIO%d) pulsado!", PIN_BTN_CAPTURE);
+                if (s_callback) s_callback(BTN_EVENT_SHORT_PRESS, s_user_data);
+            } else if (s_ext_press_ms >= BTN_LONG_PRESS_MS && !s_ext_long_fired) {
+                s_ext_long_fired = true;
+                ESP_LOGI(TAG, "📸 Disparador físico Pin D0 (GPIO%d) pulsación larga -> Ráfaga", PIN_BTN_CAPTURE);
+                if (s_callback) s_callback(BTN_EVENT_LONG_PRESS, s_user_data);
+            }
         }
     }
 
@@ -70,11 +72,11 @@ static void poll_timer_cb(void* arg) {
 
     int boot_level = gpio_get_level(GPIO_NUM_0);
     if (boot_level == 1) {
-        s_boot_saw_high = true; // Confirmamos que no está forzado por USB
+        s_boot_saw_high = true;
         s_boot_press_ms = 0;
         s_boot_fired = false;
         s_boot_long_fired = false;
-    } else if (s_boot_saw_high) { // Solo si ya estuvo en reposo (HIGH)
+    } else if (s_boot_saw_high) {
         s_boot_press_ms += 10;
         if (s_boot_press_ms >= BTN_DEBOUNCE_MS && !s_boot_fired) {
             s_boot_fired = true;
@@ -92,30 +94,25 @@ static void poll_timer_cb(void* arg) {
 // API Pública
 // =============================================================================
 esp_err_t button_init(button_event_cb_t callback, void* user_data) {
-    ESP_LOGI(TAG, "Inicializando botones (BOOT GPIO0 y externo GPIO%d)", PIN_BTN_CAPTURE);
+    ESP_LOGI(TAG, "Inicializando botones (BOOT GPIO0 y externo en Pin D0 / GPIO%d)", PIN_BTN_CAPTURE);
 
     s_callback  = callback;
     s_user_data = user_data;
 
-    // Configurar GPIOs como entrada con pull-up
-    gpio_config_t io_conf = {};
-    io_conf.intr_type    = GPIO_INTR_DISABLE;
-    io_conf.mode         = GPIO_MODE_INPUT;
-    uint64_t mask = (1ULL << GPIO_NUM_0);
+    // Resetear y configurar el botón integrado BOOT (GPIO0)
+    gpio_reset_pin(GPIO_NUM_0);
+    gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
+    gpio_set_pull_mode(GPIO_NUM_0, GPIO_PULLUP_ONLY);
+
+    // Resetear y configurar el botón físico en Pin D0 (GPIO1)
     if (PIN_BTN_CAPTURE != -1) {
-        mask |= (1ULL << PIN_BTN_CAPTURE);
-    }
-    io_conf.pin_bit_mask = mask;
-    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
-    io_conf.pull_up_en   = GPIO_PULLUP_ENABLE;   // Pull-up interno: botón a GND
-
-    esp_err_t ret = gpio_config(&io_conf);
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Error configurando GPIO: %s", esp_err_to_name(ret));
-        return ret;
+        gpio_reset_pin((gpio_num_t)PIN_BTN_CAPTURE);
+        gpio_set_direction((gpio_num_t)PIN_BTN_CAPTURE, GPIO_MODE_INPUT);
+        gpio_set_pull_mode((gpio_num_t)PIN_BTN_CAPTURE, GPIO_PULLUP_ONLY);
+        ESP_LOGI(TAG, "Pin D0 (GPIO%d) configurado como ENTRADA con PULL-UP activo", PIN_BTN_CAPTURE);
     }
 
-    // Crear timer de polling periódico (20ms)
+    // Crear timer de polling periódico (10ms)
     esp_timer_create_args_t poll_args = {
         .callback        = poll_timer_cb,
         .arg             = NULL,
@@ -123,12 +120,15 @@ esp_err_t button_init(button_event_cb_t callback, void* user_data) {
         .name            = "btn_poll",
         .skip_unhandled_events = true,
     };
-    ret = esp_timer_create(&poll_args, &s_poll_timer);
-    if (ret != ESP_OK) { ESP_LOGE(TAG, "Error creando timer poll"); return ret; }
+    esp_err_t ret = esp_timer_create(&poll_args, &s_poll_timer);
+    if (ret != ESP_OK) { 
+        ESP_LOGE(TAG, "Error creando timer poll del botón"); 
+        return ret; 
+    }
 
     esp_timer_start_periodic(s_poll_timer, 10 * 1000ULL);
 
-    ESP_LOGI(TAG, "Botón inicializado (corto < %dms, largo >= %dms)",
+    ESP_LOGI(TAG, "Botones listos (disparo corto < %dms, ráfaga >= %dms)",
              BTN_LONG_PRESS_MS, BTN_LONG_PRESS_MS);
     return ESP_OK;
 }

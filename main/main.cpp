@@ -196,15 +196,27 @@ static void capture_task(void* pvParam) {
                 ESP_LOGW(TAG, "AF error — capturando sin AF");
             }
 
-            // 4. Capturar frame JPEG con destello de Flash LED
+            // 4. Efecto de Flash y Captura de Frame JPEG
             set_system_state(SYS_STATE_CAPTURING);
+            ESP_LOGI(TAG, "⚡ Encendiendo Flash para la foto");
             led_flash_on();
-            vTaskDelay(pdMS_TO_TICKS(100));  // Tiempo para que el LED de flash ilumine la escena
 
+            // Descartar frame previo que estuviera en buffer sin iluminación de flash
+            camera_fb_t* discard = camera_capture_frame();
+            if (discard) {
+                camera_free_frame(discard);
+            }
+
+            // Breve tiempo para estabilizar exposición del sensor con la luz del flash
+            vTaskDelay(pdMS_TO_TICKS(80));
+
+            // Captura de la foto con flash
             camera_fb_t* fb = camera_capture_frame();
 
-            vTaskDelay(pdMS_TO_TICKS(150)); // Mantener destello para un efecto de flash visible
+            // Mantener destello de flash para efecto visual realista
+            vTaskDelay(pdMS_TO_TICKS(150));
             led_flash_off();
+            ESP_LOGI(TAG, "⚡ Flash completado");
 
             if (!fb) {
                 ESP_LOGE(TAG, "Error capturando frame");
@@ -215,7 +227,7 @@ static void capture_task(void* pvParam) {
             ESP_LOGI(TAG, "Foto capturada: %zu bytes (%dx%d)",
                      fb->len, fb->width, fb->height);
 
-            // 5. Guardar en MicroSD
+            // 5. Guardar en MicroSD (indicado con parpadeo rápido)
             set_system_state(SYS_STATE_SAVING);
             memset(last_filename, 0, sizeof(last_filename));
             err = sd_save_photo(fb->buf, fb->len, last_filename);
@@ -231,8 +243,8 @@ static void capture_task(void* pvParam) {
 
             ESP_LOGI(TAG, "Foto guardada: %s", last_filename);
 
-            // Confirmación visual con destellos
-            led_flash_confirm(2);
+            // 6. Confirmación visual con destellos claros
+            led_flash_confirm(3);
 
             // 6. Notificar a BLE y BT Classic
             ble_transfer_notify_new_photo(last_filename);

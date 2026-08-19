@@ -120,9 +120,6 @@ static void blink_timer_cb(void* arg) {
 // =============================================================================
 // API Pública
 // =============================================================================
-// =============================================================================
-// API Pública
-// =============================================================================
 esp_err_t led_init(void) {
     // 1. Configurar LED de estado si está definido
     if (PIN_LED_STATUS != -1) {
@@ -139,6 +136,7 @@ esp_err_t led_init(void) {
             ESP_LOGE(TAG, "Error configurando GPIO LED estado");
             return ret;
         }
+        gpio_set_drive_capability((gpio_num_t)PIN_LED_STATUS, GPIO_DRIVE_CAP_3);
         led_on(); // Encender inmediatamente al iniciar
 
         // Crear timer para parpadeo de estado
@@ -171,7 +169,10 @@ esp_err_t led_init(void) {
             ESP_LOGE(TAG, "Error configurando GPIO LED Flash");
             return ret;
         }
-        led_flash_off();
+        gpio_set_drive_capability((gpio_num_t)PIN_LED_FLASH, GPIO_DRIVE_CAP_3);
+        if (PIN_LED_FLASH != -1) {
+            gpio_set_level((gpio_num_t)PIN_LED_FLASH, 0);
+        }
     }
 
     ESP_LOGI(TAG, "LEDs inicializados correctamente");
@@ -216,12 +217,19 @@ void led_update_from_state(system_state_t state) {
 }
 
 void led_flash_confirm(uint8_t flashes) {
-    // Flash de confirmación rápido
+    // Destello de confirmación rápido (Status LED y Flash LED)
     for (uint8_t i = 0; i < flashes; i++) {
-        led_flash_on();
-        vTaskDelay(pdMS_TO_TICKS(60));
-        led_flash_off();
-        vTaskDelay(pdMS_TO_TICKS(60));
+        if (PIN_LED_STATUS != -1) gpio_set_level((gpio_num_t)PIN_LED_STATUS, 1);
+        if (PIN_LED_FLASH != -1)  gpio_set_level((gpio_num_t)PIN_LED_FLASH, 1);
+        vTaskDelay(pdMS_TO_TICKS(80));
+        if (PIN_LED_STATUS != -1) gpio_set_level((gpio_num_t)PIN_LED_STATUS, 0);
+        if (PIN_LED_FLASH != -1)  gpio_set_level((gpio_num_t)PIN_LED_FLASH, 0);
+        vTaskDelay(pdMS_TO_TICKS(80));
+    }
+    // Restaurar LED de estado encendido para indicar listo
+    if (PIN_LED_STATUS != -1) {
+        gpio_set_level((gpio_num_t)PIN_LED_STATUS, 1);
+        s_led_state = true;
     }
 }
 
@@ -239,17 +247,21 @@ void led_flash_off(void) {
     if (PIN_LED_FLASH != -1) {
         gpio_set_level((gpio_num_t)PIN_LED_FLASH, 0);
     }
-    // Mantener el LED de estado encendido para indicar que la cámara está conectada y activa
     if (PIN_LED_STATUS != -1) {
-        gpio_set_level((gpio_num_t)PIN_LED_STATUS, 1);
-        s_led_state = true;
+        gpio_set_level((gpio_num_t)PIN_LED_STATUS, 0);
+        s_led_state = false;
     }
 }
 
 void led_trigger_flash(uint32_t duration_ms) {
-    led_flash_on();
+    if (PIN_LED_FLASH != -1) gpio_set_level((gpio_num_t)PIN_LED_FLASH, 1);
+    if (PIN_LED_STATUS != -1) gpio_set_level((gpio_num_t)PIN_LED_STATUS, 1);
     vTaskDelay(pdMS_TO_TICKS(duration_ms));
-    led_flash_off();
+    if (PIN_LED_FLASH != -1) gpio_set_level((gpio_num_t)PIN_LED_FLASH, 0);
+    if (PIN_LED_STATUS != -1) {
+        gpio_set_level((gpio_num_t)PIN_LED_STATUS, 1);
+        s_led_state = true;
+    }
 }
 
 void led_deinit(void) {
@@ -259,7 +271,9 @@ void led_deinit(void) {
         s_blink_timer = NULL;
     }
     led_off();
-    led_flash_off();
+    if (PIN_LED_FLASH != -1) {
+        gpio_set_level((gpio_num_t)PIN_LED_FLASH, 0);
+    }
     ESP_LOGI(TAG, "LEDs deinicializados");
 }
 

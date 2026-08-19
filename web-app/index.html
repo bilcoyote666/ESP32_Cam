@@ -562,6 +562,25 @@
             transform: scale(0.97);
         }
 
+        /* Efecto de destello de flash en pantalla */
+        .screen-flash-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.95);
+            z-index: 99999;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.08s ease-out;
+        }
+
+        .screen-flash-overlay.active {
+            opacity: 1;
+            transition: opacity 0.03s ease-in;
+        }
+
         .btn-refresh-modern.is-refreshing svg {
             animation: spin-refresh 0.7s linear infinite;
         }
@@ -1331,14 +1350,20 @@
 
                 <!-- Centered Bottom Actions -->
                 <div class="gallery-bottom-actions">
-                    <button id="btn-capture" class="btn-capture-large">
+                    <button id="btn-capture" class="btn-capture-large" title="Disparar Foto con Flash">
                         <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
                             <circle cx="12" cy="13" r="4"></circle>
                         </svg>
                         <span id="capture-text">Disparar Foto</span>
                     </button>
-                    <button id="btn-refresh" class="btn-refresh-modern">
+                    <button id="btn-flash" class="btn-refresh-modern" title="Probar Destello de Flash">
+                        <svg viewBox="0 0 24 24" width="19" height="19" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                        <span>Flash</span>
+                    </button>
+                    <button id="btn-refresh" class="btn-refresh-modern" title="Actualizar lista de fotos">
                         <svg viewBox="0 0 24 24" width="19" height="19" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M23 4v6h-6M1 20v-6h6"></path>
                             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
@@ -2282,21 +2307,61 @@
             }, 500);
         });
 
+        // Función de efecto de Flash en pantalla de la App
+        function triggerAppFlashEffect() {
+            let overlay = document.getElementById('camera-flash-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'camera-flash-overlay';
+                overlay.className = 'screen-flash-overlay';
+                document.body.appendChild(overlay);
+            }
+            overlay.classList.add('active');
+            setTimeout(() => {
+                overlay.classList.remove('active');
+            }, 140);
+        }
+
+        // Sonido sintético de obturador fotográfico
+        function playShutterSound() {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const audioCtx = new AudioCtx();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(700, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.09);
+            } catch(e) {}
+        }
+
         const btnCapture = document.getElementById('btn-capture');
         const captureText = document.getElementById('capture-text');
         if (btnCapture) {
             btnCapture.addEventListener('click', async () => {
                 try {
+                    // 1. Efecto de flash en pantalla y sonido de obturador instantáneo
+                    triggerAppFlashEffect();
+                    playShutterSound();
+
                     btnCapture.disabled = true;
-                    if (captureText) captureText.textContent = "Disparando...";
+                    if (captureText) captureText.textContent = "⚡ Disparando...";
+
                     const res = await fetch('/api/capture', { method: 'POST' });
                     if (res.ok) {
-                        if (captureText) captureText.textContent = "¡Guardando!";
-                        setTimeout(() => {
-                            fetchPhotoList();
+                        if (captureText) captureText.textContent = "💾 ¡Guardando!";
+                        setTimeout(async () => {
+                            await fetchPhotoList();
                             btnCapture.disabled = false;
                             if (captureText) captureText.textContent = "Disparar Foto";
-                        }, 2500);
+                        }, 2200);
                     } else {
                         alert("Error al disparar la captura.");
                         btnCapture.disabled = false;
@@ -2306,6 +2371,21 @@
                     console.error("Error capturando foto:", e);
                     btnCapture.disabled = false;
                     if (captureText) captureText.textContent = "Disparar Foto";
+                }
+            });
+        }
+
+        const btnFlash = document.getElementById('btn-flash');
+        if (btnFlash) {
+            btnFlash.addEventListener('click', async () => {
+                try {
+                    triggerAppFlashEffect();
+                    btnFlash.style.opacity = '0.5';
+                    await fetch('/api/flash', { method: 'POST' });
+                    setTimeout(() => { btnFlash.style.opacity = '1'; }, 300);
+                } catch (e) {
+                    console.error("Error activando flash:", e);
+                    btnFlash.style.opacity = '1';
                 }
             });
         }

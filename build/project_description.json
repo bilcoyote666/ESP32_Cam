@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "CamaraESP32",
-    "project_version":    "5df15a3-dirty",
+    "project_version":    "d3625e9-dirty",
     "project_path":       "/Users/oscariglesias/Documents/Arduino/Camara",
     "idf_path":           "/Users/oscariglesias/esp/esp-idf",
     "build_dir":          "/Users/oscariglesias/Documents/Arduino/Camara/build",
