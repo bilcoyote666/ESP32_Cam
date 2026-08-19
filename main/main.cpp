@@ -118,7 +118,8 @@ static void on_button_event(button_event_t event, void* user_data) {
     } else if (event == BTN_EVENT_EXTRA_LONG_PRESS) {
         ESP_LOGW(TAG, "Botón: pulsación MUY larga (10s) → reseteando contraseña");
         auth_clear_password();
-        led_update_from_state(SYS_STATE_ERROR_CAM);
+        led_flash_confirm(3);
+        set_system_state(SYS_STATE_READY);
     }
 }
 
@@ -198,11 +199,11 @@ static void capture_task(void* pvParam) {
             // 4. Capturar frame JPEG con destello de Flash LED
             set_system_state(SYS_STATE_CAPTURING);
             led_flash_on();
-            vTaskDelay(pdMS_TO_TICKS(40));  // Breve tiempo para que el LED de flash ilumine la escena
+            vTaskDelay(pdMS_TO_TICKS(100));  // Tiempo para que el LED de flash ilumine la escena
 
             camera_fb_t* fb = camera_capture_frame();
 
-            vTaskDelay(pdMS_TO_TICKS(100)); // Mantener destello para un efecto de flash visible
+            vTaskDelay(pdMS_TO_TICKS(150)); // Mantener destello para un efecto de flash visible
             led_flash_off();
 
             if (!fb) {
@@ -229,6 +230,9 @@ static void capture_task(void* pvParam) {
             }
 
             ESP_LOGI(TAG, "Foto guardada: %s", last_filename);
+
+            // Confirmación visual con destellos
+            led_flash_confirm(2);
 
             // 6. Notificar a BLE y BT Classic
             ble_transfer_notify_new_photo(last_filename);

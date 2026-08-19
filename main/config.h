@@ -17,43 +17,42 @@
 #define DEVICE_NAME          "Raboseta Cam"
 
 // =============================================================================
-// PINES — CÁMARA OV5640 (interfaz DVP 24-pin)
+// PINES — CÁMARA OV2640 (interfaz DVP 24-pin - XIAO ESP32S3 Sense)
 // =============================================================================
-// XIAO ESP32S3 Sense camera pinout
 #define CAM_PIN_PWDN         (-1)
 #define CAM_PIN_RESET        (-1)
 #define CAM_PIN_XCLK         10
 #define CAM_PIN_SIOD         40
 #define CAM_PIN_SIOC         39
 
-// Líneas de datos DVP (8 bits)
+// Líneas de datos DVP (8 bits) — Pines exactos de XIAO ESP32S3 Sense
 #define CAM_PIN_D7           48
-#define CAM_PIN_D6           12
-#define CAM_PIN_D5           14
-#define CAM_PIN_D4           16
-#define CAM_PIN_D3           18
-#define CAM_PIN_D2           17
-#define CAM_PIN_D1           15
-#define CAM_PIN_D0           11
+#define CAM_PIN_D6           11
+#define CAM_PIN_D5           12
+#define CAM_PIN_D4           14
+#define CAM_PIN_D3           16
+#define CAM_PIN_D2           18
+#define CAM_PIN_D1           17
+#define CAM_PIN_D0           15
 
 // Sincronización DVP
 #define CAM_PIN_VSYNC        38
 #define CAM_PIN_HREF         47
 #define CAM_PIN_PCLK         13
 
-// Frecuencia clock del sensor (16 MHz o 20 MHz para OV2640 en XIAO Sense)
-#define CAM_XCLK_FREQ_HZ     16000000  // 16 MHz — óptimo y estable para OV2640 sin jitter DMA
+// Frecuencia clock del sensor (20 MHz para OV2640 en XIAO Sense)
+#define CAM_XCLK_FREQ_HZ     20000000
 
-// Modo SPI para XIAO ESP32S3 Sense
-#define SD_SPI_PIN_CS        21
-#define SD_SPI_PIN_MOSI      9
-#define SD_SPI_PIN_MISO      8
-#define SD_SPI_PIN_SCK       7
+// Modo SPI para MicroSD en XIAO ESP32S3 Sense
+#define SD_SPI_PIN_CS        3      // GPIO3 (D2) — CS de la ranura MicroSD en placa Sense
+#define SD_SPI_PIN_MOSI      9      // GPIO9 (D10) — MOSI
+#define SD_SPI_PIN_MISO      8      // GPIO8 (D9) — MISO
+#define SD_SPI_PIN_SCK       7      // GPIO7 (D8) — SCK
 
 // =============================================================================
 // PINES — BOTÓN Y LED
 // =============================================================================
-#define PIN_BTN_CAPTURE      1      // GPIO1 — Pin externo D0 (Botón de disparo)
+#define PIN_BTN_CAPTURE      1      // GPIO1 — Pin externo D0 (Botón físico de disparo)
 #define PIN_LED_STATUS       2      // GPIO2 — Pin externo D1 (LED de estado)
 #define PIN_LED_FLASH        3      // GPIO3 — Pin externo D2 (LED de Flash)
 

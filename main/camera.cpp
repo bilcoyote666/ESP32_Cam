@@ -50,7 +50,8 @@ static const camera_config_t s_cam_config = {
     .jpeg_quality   = CAM_JPEG_QUALITY_CAPTURE,
     .fb_count       = CAM_FB_COUNT_DETECT,
     .fb_location    = CAMERA_FB_IN_PSRAM,   // Frame buffers en PSRAM
-    .grab_mode      = CAMERA_GRAB_LATEST,
+    .grab_mode      = CAMERA_GRAB_WHEN_EMPTY,
+    .sccb_i2c_port  = -1,
 };
 
 // =============================================================================
@@ -188,9 +189,14 @@ esp_err_t camera_set_mode(camera_mode_t mode) {
     // Pequeña pausa para que el sensor estabilice
     vTaskDelay(pdMS_TO_TICKS(150));
 
-    // Descartar los primeros frames después del cambio (pueden ser corruptos)
-    camera_fb_t* discard_fb = esp_camera_fb_get();
-    if (discard_fb) esp_camera_fb_return(discard_fb);
+    // Descartar los primeros frames después del cambio (pueden ser corruptos o del tamaño previo)
+    for (int i = 0; i < 2; i++) {
+        camera_fb_t* discard_fb = esp_camera_fb_get();
+        if (discard_fb) {
+            esp_camera_fb_return(discard_fb);
+        }
+        vTaskDelay(pdMS_TO_TICKS(30));
+    }
 
     s_current_mode = mode;
     return ESP_OK;

@@ -256,44 +256,45 @@
         }
 
         .gallery-screen {
+            display: flex;
             flex-direction: column;
-            height: 100%;
-            padding: 24px;
+            width: 100%;
+            min-height: calc(100vh - 70px);
+            padding: 12px 10px 24px 10px;
+            box-sizing: border-box;
         }
 
-        .view-header {
+        .view-header.centered {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 24px;
+            justify-content: center;
+            margin-bottom: 12px;
             flex-shrink: 0;
+            width: 100%;
         }
 
-        .view-header h2 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 2px;
-        }
-
-        .btn-refresh {
-            background-color: var(--bg-panel);
-            border: 1px solid var(--border-color);
-            color: var(--text-white);
-            padding: 10px 18px;
-            border-radius: 30px;
-            font-family: inherit;
-            font-weight: 600;
-            font-size: 0.85rem;
+        .title-badge-wrap {
             display: flex;
             align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: var(--transition-smooth);
+            gap: 12px;
         }
 
-        .btn-refresh:hover {
-            background-color: var(--bg-input);
-            border-color: var(--text-gray);
+        .title-badge-wrap h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0;
+            letter-spacing: -0.02em;
+        }
+
+        .photo-badge {
+            background: rgba(255, 170, 0, 0.15);
+            border: 1px solid rgba(255, 170, 0, 0.35);
+            color: var(--accent-gold);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.78rem;
+            font-weight: 700;
         }
 
         .carousel-view-wrapper {
@@ -304,44 +305,40 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            perspective: 1200px;
-            padding: 20px 0;
+            padding: 8px 0;
             min-height: 380px;
         }
 
         .photo-carousel {
             position: relative;
             width: 100%;
-            max-width: 580px;
-            height: 100%;
+            max-width: 680px;
+            height: min(58vh, 500px);
             min-height: 360px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transform-style: preserve-3d;
         }
 
         .photo-card {
             position: absolute;
-            width: 270px;
-            height: 360px;
-            background-color: var(--bg-panel);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
+            width: min(92vw, 540px);
+            height: 100%;
+            background-color: #121217;
+            border: 1.5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
             overflow: hidden;
             cursor: pointer;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
             display: flex;
             flex-direction: column;
-            transform-style: preserve-3d;
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            transition: transform 0.45s cubic-bezier(0.25, 0.8, 0.25, 1), 
-                        opacity 0.45s ease, 
+            transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.2, 1), 
+                        opacity 0.35s ease, 
                         border-color 0.3s ease, 
-                        box-shadow 0.45s ease;
+                        box-shadow 0.4s ease;
             opacity: 0;
             pointer-events: none;
+            transform: translateX(100%) scale(0.9);
         }
 
         .photo-card.active {
@@ -349,85 +346,106 @@
             z-index: 10;
             pointer-events: auto;
             border-color: var(--accent-gold);
-            box-shadow: 0 15px 35px rgba(255, 170, 0, 0.15), 0 10px 30px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 16px 45px rgba(255, 170, 0, 0.22), 0 8px 30px rgba(0, 0, 0, 0.8);
+            transform: translateX(0) scale(1);
         }
 
         .photo-card.left {
-            opacity: 0.6;
+            opacity: 0.25;
             z-index: 5;
             pointer-events: auto;
-            transform: translateX(-140px) translateZ(-150px) rotateY(25deg);
+            transform: translateX(calc(-100% - 15px)) scale(0.9);
         }
 
         .photo-card.right {
-            opacity: 0.6;
+            opacity: 0.25;
             z-index: 5;
             pointer-events: auto;
-            transform: translateX(140px) translateZ(-150px) rotateY(-25deg);
+            transform: translateX(calc(100% + 15px)) scale(0.9);
         }
 
         .photo-card.hidden-left {
-            transform: translateX(-280px) translateZ(-300px) rotateY(40deg);
             opacity: 0;
             z-index: 1;
+            pointer-events: none;
+            transform: translateX(calc(-200% - 30px)) scale(0.8);
         }
 
         .photo-card.hidden-right {
-            transform: translateX(280px) translateZ(-300px) rotateY(-40deg);
             opacity: 0;
             z-index: 1;
+            pointer-events: none;
+            transform: translateX(calc(200% + 30px)) scale(0.8);
         }
 
         .photo-thumb-container {
             flex: 1;
             position: relative;
-            background-color: #050505;
+            background-color: #060608;
             overflow: hidden;
             min-height: 0;
             display: flex;
-            align-items: stretch;
+            align-items: center;
+            justify-content: center;
         }
 
         .photo-thumb-container img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             pointer-events: none;
             display: block;
+            background-color: #050505;
         }
 
         .photo-info {
-            padding: 14px 16px;
+            padding: 12px 18px;
             display: flex;
-            flex-direction: column;
-            gap: 4px;
-            background-color: var(--bg-panel);
-            border-top: 1px solid var(--border-color);
+            align-items: center;
+            justify-content: space-between;
+            background-color: #17171e;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
         }
 
         .photo-info .name {
-            font-size: 0.85rem;
-            font-weight: 600;
+            font-size: 0.95rem;
+            font-weight: 700;
             letter-spacing: 0.02em;
+            color: #ffffff;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
         .photo-info .meta {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             color: var(--text-gray);
             display: flex;
-            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .photo-info .btn-edit-badge {
+            background: rgba(255, 170, 0, 0.15);
+            border: 1px solid rgba(255, 170, 0, 0.3);
+            color: var(--accent-gold);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .carousel-arrow {
             position: absolute;
-            width: 50px;
-            height: 50px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            background-color: rgba(18, 18, 21, 0.7);
-            border: 1px solid var(--border-color);
+            background-color: rgba(18, 18, 24, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             color: var(--text-white);
             display: flex;
             align-items: center;
@@ -435,9 +453,9 @@
             cursor: pointer;
             z-index: 20;
             transition: var(--transition-smooth);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
 
         .carousel-arrow:hover {
@@ -447,30 +465,101 @@
             transform: scale(1.1);
         }
 
-        .arrow-prev { left: 10px; }
-        .arrow-next { right: 10px; }
+        .arrow-prev { left: 6px; }
+        .arrow-next { right: 6px; }
 
         .carousel-dots {
             display: flex;
             justify-content: center;
             gap: 8px;
-            margin-top: 16px;
+            margin: 10px 0 14px 0;
             flex-shrink: 0;
         }
 
         .dot-indicator {
-            width: 8px;
-            height: 8px;
+            width: 9px;
+            height: 9px;
             border-radius: 50%;
-            background-color: var(--border-color);
+            background-color: rgba(255, 255, 255, 0.2);
             cursor: pointer;
             transition: var(--transition-smooth);
         }
 
         .dot-indicator.active {
             background-color: var(--accent-gold);
-            transform: scale(1.25);
-            box-shadow: 0 0 8px var(--accent-gold-bg);
+            transform: scale(1.3);
+            box-shadow: 0 0 10px var(--accent-gold);
+        }
+
+        /* Acciones centradas debajo de la galería */
+        .gallery-bottom-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            width: 100%;
+            max-width: 460px;
+            margin: 6px auto 14px auto;
+            flex-shrink: 0;
+            box-sizing: border-box;
+            padding: 0 12px;
+        }
+
+        .btn-capture-large {
+            flex: 1;
+            background: linear-gradient(135deg, #ffaa00 0%, #ff7700 100%);
+            color: #000;
+            font-family: inherit;
+            font-weight: 800;
+            font-size: 1.05rem;
+            padding: 14px 22px;
+            border-radius: 40px;
+            border: none;
+            box-shadow: 0 6px 22px rgba(255, 170, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-capture-large:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(255, 170, 0, 0.55);
+        }
+
+        .btn-capture-large:active {
+            transform: scale(0.97);
+        }
+
+        .btn-refresh-modern {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            color: var(--text-white);
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 14px 22px;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+
+        .btn-refresh-modern:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-refresh-modern:active {
+            transform: scale(0.97);
         }
 
         .editor-screen {
@@ -1065,21 +1154,7 @@
 
         /* Splash Screen Style */
         .splash-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: radial-gradient(circle at center, #1c1c1f 0%, #09090b 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 99999;
-            opacity: 1;
-            visibility: visible;
-            cursor: pointer;
-            animation: splashAutoDismiss 0.5s ease 1.5s forwards;
-            transition: opacity 0.5s ease, visibility 0.5s;
+            display: none !important;
         }
 
         .splash-screen.fade-out {
@@ -1211,22 +1286,16 @@
                 </div>
             </section>
 
-            <!-- 2. 3D Rotating Gallery Screen -->
+            <!-- 2. Full-Width Gallery Screen -->
             <section id="gallery-view" class="view gallery-screen active">
-                <div class="view-header">
-                    <div class="title-area">
+                <div class="view-header centered">
+                    <div class="title-badge-wrap">
                         <h2>Carrete Digital</h2>
+                        <span id="photo-count-badge" class="photo-badge">Cargando...</span>
                     </div>
-                    <button id="btn-refresh" class="btn-refresh">
-                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M23 4v6h-6M1 20v-6h6"></path>
-                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                        </svg>
-                        Actualizar
-                    </button>
                 </div>
 
-                <!-- 3D Carousel Wrapper -->
+                <!-- Full-Width Carousel Wrapper -->
                 <div class="carousel-view-wrapper">
                     <button id="btn-prev" class="carousel-arrow arrow-prev" aria-label="Anterior">
                         <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -1237,7 +1306,7 @@
                     <div id="photo-carousel" class="photo-carousel">
                         <div class="empty-state">
                             <div class="empty-icon">📸</div>
-                            <p>Cargando fotografías exclusivas de la MicroSD...</p>
+                            <p>Cargando fotos de la cámara...</p>
                         </div>
                     </div>
 
@@ -1250,6 +1319,24 @@
 
                 <!-- Carousel Indicators -->
                 <div id="carousel-dots" class="carousel-dots"></div>
+
+                <!-- Centered Bottom Actions -->
+                <div class="gallery-bottom-actions">
+                    <button id="btn-capture" class="btn-capture-large">
+                        <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                            <circle cx="12" cy="13" r="4"></circle>
+                        </svg>
+                        <span id="capture-text">Disparar Foto</span>
+                    </button>
+                    <button id="btn-refresh" class="btn-refresh-modern">
+                        <svg viewBox="0 0 24 24" width="19" height="19" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M23 4v6h-6M1 20v-6h6"></path>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                        <span>Actualizar</span>
+                    </button>
+                </div>
             </section>
 
             <!-- 3. Photo Editor Screen -->
@@ -1793,14 +1880,17 @@
         }, 7000);
 
         function renderPhotoCarousel(files) {
+            const badge = document.getElementById('photo-count-badge');
             if (!files || files.length === 0) {
                 photoCarousel.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-icon">📭</div>
-                        <p>No se encontraron fotos en la tarjeta SD.</p>
+                        <p style="font-size:1.1rem; font-weight:600; color:#fff; margin-bottom:6px;">No hay fotos en la MicroSD</p>
+                        <p style="font-size:0.9rem; color:var(--text-gray);">Usa el botón «Disparar Foto» para empezar.</p>
                     </div>
                 `;
                 carouselDots.innerHTML = '';
+                if (badge) badge.textContent = '0 fotos';
                 return;
             }
 
@@ -1809,6 +1899,7 @@
             photoCarousel.innerHTML = '';
             carouselDots.innerHTML = '';
             activePhotoIndex = 0;
+            if (badge) badge.textContent = `${photosList.length} ${photosList.length === 1 ? 'foto' : 'fotos'}`;
 
             photosList.forEach((f, index) => {
                 const card = document.createElement('div');
@@ -1822,15 +1913,25 @@
 
                 card.innerHTML = `
                     <div class="photo-thumb-container">
-                        <img data-src="${photoUrl}" alt="${f.name}" loading="lazy"
-                             onerror="if(!this.dataset.retried){this.dataset.retried='1';setTimeout(()=>{this.src=this.dataset.src+'&r='+Date.now();},2000);}">
+                        <img src="${photoUrl}" alt="${f.name}" loading="lazy"
+                             onerror="if(!this.dataset.retried){this.dataset.retried='1';setTimeout(()=>{this.src='${photoUrl}&r='+Date.now();},2000);}">
                     </div>
                     <div class="photo-info">
-                        <div class="name">${f.name}</div>
-                        <div class="meta">
-                            <span>${sizeStr}</span>
-                            <span>${(f.date || 'Desconocida').split(' ')[0]}</span>
+                        <div style="display:flex; flex-direction:column; gap:2px; min-width:0;">
+                            <div class="name">${f.name}</div>
+                            <div class="meta">
+                                <span>${sizeStr}</span>
+                                <span>•</span>
+                                <span>${(f.date || 'Desconocida').split(' ')[0]}</span>
+                            </div>
                         </div>
+                        <span class="btn-edit-badge">
+                            <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 20h9"></path>
+                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                            </svg>
+                            Editar
+                        </span>
                     </div>
                 `;
 
@@ -2156,6 +2257,34 @@
             if (isOfflineMode) showOfflineDemoMode();
             else fetchPhotoList();
         });
+
+        const btnCapture = document.getElementById('btn-capture');
+        const captureText = document.getElementById('capture-text');
+        if (btnCapture) {
+            btnCapture.addEventListener('click', async () => {
+                try {
+                    btnCapture.disabled = true;
+                    if (captureText) captureText.textContent = "Disparando...";
+                    const res = await fetch('/api/capture', { method: 'POST' });
+                    if (res.ok) {
+                        if (captureText) captureText.textContent = "¡Guardando!";
+                        setTimeout(() => {
+                            fetchPhotoList();
+                            btnCapture.disabled = false;
+                            if (captureText) captureText.textContent = "Disparar Foto";
+                        }, 2500);
+                    } else {
+                        alert("Error al disparar la captura.");
+                        btnCapture.disabled = false;
+                        if (captureText) captureText.textContent = "Disparar Foto";
+                    }
+                } catch (e) {
+                    console.error("Error capturando foto:", e);
+                    btnCapture.disabled = false;
+                    if (captureText) captureText.textContent = "Disparar Foto";
+                }
+            });
+        }
 
         btnReset.addEventListener('click', () => {
             resetSliders();

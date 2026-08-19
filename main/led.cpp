@@ -47,79 +47,72 @@ static void blink_timer_cb(void* arg) {
             break;
 
         case LED_PATTERN_READY:
-            // Encendido fijo tenue — usamos PWM simulado con baja frecuencia
-            // (Si hay LEDC disponible, mejor usar PWM real)
+        case LED_PATTERN_DETECTING:
+            // Encendido fijo constante para indicar que la cámara está conectada y lista
             led_on();
             esp_timer_stop(s_blink_timer);
             break;
 
-        case LED_PATTERN_DETECTING:
-            // Parpadeo lento 1Hz: 500ms ON, 500ms OFF
-            led_toggle();
-            esp_timer_start_once(s_blink_timer, 500 * 1000ULL);
-            break;
-
         case LED_PATTERN_CAPTURING:
-            // Flash rápido x3 (manejado con s_blink_count)
-            if (s_blink_count < 6) {  // 3 ciclos ON/OFF = 6 toggles
+            // Destello rápido para la captura
+            if (s_blink_count < 4) {
                 led_toggle();
                 s_blink_count++;
-                esp_timer_start_once(s_blink_timer, 80 * 1000ULL);  // 80ms
+                esp_timer_start_once(s_blink_timer, 60 * 1000ULL);  // 60ms
             } else {
-                led_off();
+                led_on();
                 s_blink_count = 0;
-                // Volver a READY automáticamente
                 s_current_pattern = LED_PATTERN_READY;
-                esp_timer_start_once(s_blink_timer, 200 * 1000ULL);
+                esp_timer_stop(s_blink_timer);
             }
             break;
 
         case LED_PATTERN_SAVING:
-            // Parpadeo rápido 5Hz: 100ms ON, 100ms OFF
+            // Parpadeo rápido durante guardado / arranque
             led_toggle();
             esp_timer_start_once(s_blink_timer, 100 * 1000ULL);
             break;
 
         case LED_PATTERN_TRANSFERRING:
-            // Doble parpadeo cada 2s: ON-OFF-ON-OFF ... pausa larga
+            // Doble parpadeo cada 2s
             if (s_blink_count < 4) {
                 led_toggle();
                 s_blink_count++;
                 esp_timer_start_once(s_blink_timer, 150 * 1000ULL);
             } else {
-                led_off();
+                led_on();
                 s_blink_count = 0;
-                esp_timer_start_once(s_blink_timer, 1700 * 1000ULL);  // 1.7s pausa
+                esp_timer_start_once(s_blink_timer, 1700 * 1000ULL);
             }
             break;
 
         case LED_PATTERN_BLE_CONNECTED:
-            // Parpadeo muy lento 0.5Hz: 1s ON, 1s OFF
-            led_toggle();
-            esp_timer_start_once(s_blink_timer, 1000 * 1000ULL);
+            // Encendido continuo
+            led_on();
+            esp_timer_stop(s_blink_timer);
             break;
 
         case LED_PATTERN_ERROR_SD:
-            // SOS-like: 3 flashes rápidos + pausa 2s
+            // 3 flashes rápidos + pausa 2s
             if (s_blink_count < 6) {
                 led_toggle();
                 s_blink_count++;
                 esp_timer_start_once(s_blink_timer, 120 * 1000ULL);
             } else {
-                led_off();
+                led_on();
                 s_blink_count = 0;
                 esp_timer_start_once(s_blink_timer, 2000 * 1000ULL);
             }
             break;
 
         case LED_PATTERN_ERROR_CAM:
-            // LED apagado — error de cámara
-            led_off();
-            esp_timer_stop(s_blink_timer);
+            // Parpadeo lento de aviso (NO apagar totalmente para que se vea que tiene energía)
+            led_toggle();
+            esp_timer_start_once(s_blink_timer, 300 * 1000ULL);
             break;
 
         default:
-            led_off();
+            led_on();
             break;
     }
 }
@@ -146,7 +139,7 @@ esp_err_t led_init(void) {
             ESP_LOGE(TAG, "Error configurando GPIO LED estado");
             return ret;
         }
-        led_off();
+        led_on(); // Encender inmediatamente al iniciar
 
         // Crear timer para parpadeo de estado
         esp_timer_create_args_t timer_args = {
@@ -191,20 +184,25 @@ void led_set_pattern(led_pattern_t pattern) {
 
     // Parar el timer actual
     esp_timer_stop(s_blink_timer);
-    led_off();
 
     s_current_pattern = pattern;
     s_blink_count     = 0;
 
-    // Iniciar el nuevo patrón
-    esp_timer_start_once(s_blink_timer, 10 * 1000ULL);  // 10ms para el primer tick
+    if (pattern == LED_PATTERN_READY || pattern == LED_PATTERN_DETECTING) {
+        led_on();
+    } else if (pattern == LED_PATTERN_OFF) {
+        led_off();
+    } else {
+        // Iniciar el nuevo patrón
+        esp_timer_start_once(s_blink_timer, 10 * 1000ULL);  // 10ms para el primer tick
+    }
 
     ESP_LOGD(TAG, "Patrón LED: %d", (int)pattern);
 }
 
 void led_update_from_state(system_state_t state) {
     switch (state) {
-        case SYS_STATE_INIT:         led_set_pattern(LED_PATTERN_OFF);          break;
+        case SYS_STATE_INIT:         led_set_pattern(LED_PATTERN_READY);        break;
         case SYS_STATE_READY:        led_set_pattern(LED_PATTERN_READY);        break;
         case SYS_STATE_DETECTING:    led_set_pattern(LED_PATTERN_DETECTING);    break;
         case SYS_STATE_FOCUSING:     led_set_pattern(LED_PATTERN_SAVING);       break;
@@ -218,16 +216,12 @@ void led_update_from_state(system_state_t state) {
 }
 
 void led_flash_confirm(uint8_t flashes) {
-    // Flash de confirmación rápido (bloqueante pero muy corto)
+    // Flash de confirmación rápido
     for (uint8_t i = 0; i < flashes; i++) {
-        led_on();
+        led_flash_on();
         vTaskDelay(pdMS_TO_TICKS(60));
-        led_off();
+        led_flash_off();
         vTaskDelay(pdMS_TO_TICKS(60));
-    }
-    // Restaurar patrón anterior
-    if (s_blink_timer) {
-        esp_timer_start_once(s_blink_timer, 10 * 1000ULL);
     }
 }
 
@@ -235,11 +229,20 @@ void led_flash_on(void) {
     if (PIN_LED_FLASH != -1) {
         gpio_set_level((gpio_num_t)PIN_LED_FLASH, 1);
     }
+    if (PIN_LED_STATUS != -1) {
+        gpio_set_level((gpio_num_t)PIN_LED_STATUS, 1);
+        s_led_state = true;
+    }
 }
 
 void led_flash_off(void) {
     if (PIN_LED_FLASH != -1) {
         gpio_set_level((gpio_num_t)PIN_LED_FLASH, 0);
+    }
+    // Mantener el LED de estado encendido para indicar que la cámara está conectada y activa
+    if (PIN_LED_STATUS != -1) {
+        gpio_set_level((gpio_num_t)PIN_LED_STATUS, 1);
+        s_led_state = true;
     }
 }
 

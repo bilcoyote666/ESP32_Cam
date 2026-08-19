@@ -47,9 +47,16 @@ esp_err_t sd_storage_init(void) {
 
     ESP_LOGI(TAG, "Montando MicroSD en modo SPI (XIAO Sense)...");
 
+    // Configurar pull-ups en las líneas SPI para máxima estabilidad
+    gpio_set_pull_mode((gpio_num_t)SD_SPI_PIN_MISO, GPIO_PULLUP_ONLY);
+    gpio_set_pull_mode((gpio_num_t)SD_SPI_PIN_MOSI, GPIO_PULLUP_ONLY);
+    gpio_set_pull_mode((gpio_num_t)SD_SPI_PIN_SCK,  GPIO_PULLUP_ONLY);
+    gpio_set_pull_mode((gpio_num_t)SD_SPI_PIN_CS,   GPIO_PULLUP_ONLY);
+
     // Configurar el bus SPI
     esp_err_t err;
     sdmmc_host_t host = SDSPI_HOST_DEFAULT();
+    host.max_freq_khz = SDMMC_FREQ_DEFAULT;
     
     spi_bus_config_t bus_cfg = {
         .mosi_io_num = SD_SPI_PIN_MOSI,
@@ -77,11 +84,26 @@ esp_err_t sd_storage_init(void) {
     mount_config.max_files              = SD_MAX_FILES;
     mount_config.allocation_unit_size   = SD_ALLOC_UNIT_SIZE;
 
-    err = esp_vfs_fat_sdspi_mount(
-        SD_MOUNT_POINT, &host, &slot_config, &mount_config, &s_card
-    );
+    // Probar pines CS posibles para Seeed Studio XIAO ESP32S3 (GPIO21 y GPIO3)
+    const gpio_num_t cs_candidates[] = { (gpio_num_t)SD_SPI_PIN_CS, GPIO_NUM_21, GPIO_NUM_3 };
+    err = ESP_FAIL;
+    for (size_t i = 0; i < sizeof(cs_candidates)/sizeof(cs_candidates[0]); i++) {
+        gpio_num_t cs = cs_candidates[i];
+        if (i > 0 && cs == cs_candidates[0]) continue; // Evitar duplicado
+        
+        ESP_LOGI(TAG, "Probando MicroSD con CS = GPIO%d...", (int)cs);
+        slot_config.gpio_cs = cs;
+        err = esp_vfs_fat_sdspi_mount(
+            SD_MOUNT_POINT, &host, &slot_config, &mount_config, &s_card
+        );
+        if (err == ESP_OK) {
+            ESP_LOGI(TAG, "MicroSD montada correctamente con CS = GPIO%d ✓", (int)cs);
+            s_mounted = true;
+            break;
+        }
+    }
 
-    if (err != ESP_OK) {
+    if (!s_mounted) {
         if (err == ESP_FAIL) {
             ESP_LOGE(TAG, "Fallo al montar FAT32. ¿Tarjeta formateada o conectada?");
         } else {
